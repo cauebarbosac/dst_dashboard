@@ -47,7 +47,7 @@ That's it. Why it's shorter:
 | Python | Node | Notes |
 |---|---|---|
 | `Makefile` targets, `tox`/`nox` sessions, `[project.scripts]` | `"scripts"` in `package.json`, run with `npm run <name>` | Named shortcuts for commands. `npm test` is shorthand for `npm run test`. |
-| `python -m http.server` / `flask run --debug` | `npm run dev` | Starts the **dev server**: serves the app on `http://localhost:5173` and reloads instantly when you save a file. |
+| `python -m http.server` / `flask run --debug` | `npm run dev` | Starts the **dev server**: serves the app on `http://localhost:5173/dst_dashboard/` and reloads instantly when you save a file. |
 | building a wheel (`python -m build`) | `npm run build` | Produces the finished site in `dist/`: plain HTML/CSS/JS files ready to upload anywhere. |
 | — | `npm run preview` | Serves the built `dist/` folder locally, to check the production version. |
 
@@ -123,7 +123,7 @@ Small syntax crib:
 | Term | Meaning / analogy |
 |---|---|
 | **DevTools** | The browser's built-in debugger (F12). Console ≈ Python REPL output; device mode (phone icon) simulates a phone screen. |
-| **localhost:5173** | Your dev server's address. `5173` is just Vite's default port, like Flask's `5000`. |
+| **localhost:5173/dst_dashboard/** | Your dev server's address (the `/dst_dashboard/` part matches the GitHub Pages path, see "base path"). `5173` is just Vite's default port, like Flask's `5000`. |
 | **Hot reload / HMR** | Save a file → the page updates in place without a full reload. Like `flask --debug` auto-reload, but faster and keeps the page state. |
 | **Static site** | A site that's just files (HTML/CSS/JS), no server code running. Ours is one, which is why GitHub Pages can host it for free. |
 | **localStorage** | A small key-value store in the browser, per site. Like a tiny `shelve` file that lives on the phone. We'll use it in M4 for local saving. |
@@ -132,8 +132,11 @@ Small syntax crib:
 | **Manifest** (`manifest.json`) | Metadata for installing a PWA: name, icon, colors. Like the metadata in `pyproject.toml`, but for the home-screen icon. |
 | **Viewport** | The visible area of the page on a phone. The `<meta name="viewport">` line in `index.html` tells phones not to zoom out. |
 | **ES modules (`"type": "module"`)** | The modern `import`/`export` system. The line in `package.json` says "this project uses it". |
-| **GitHub Pages** | Free static hosting from a GitHub repo. Planned at the end of M0 so your phone can load a stable version. |
+| **GitHub Pages** | Free static hosting from a GitHub repo. Ours: `https://cauebarbosac.github.io/dst_dashboard/`. |
 | **GitHub Actions** | CI: scripts that run on GitHub on every push (test, build, deploy). Same as for Python projects. |
+| **Workflow** (`.github/workflows/*.yml`) | One Actions recipe, written in YAML: *when* to run (e.g. push to `main`) and the *steps* (install, test, build, deploy). Like a `tox.ini`/`Makefile` that GitHub runs for you on a fresh machine. |
+| **Auto-deploy / CD** | "Continuous deployment": every push to `main` that passes the tests is published automatically. No manual upload step. |
+| **Base path** (`base` in `vite.config.ts`) | The folder the site lives under. GitHub Pages serves us at `/dst_dashboard/`, not `/`, so every file link must start with that. Like setting `SCRIPT_NAME`/`APPLICATION_ROOT` for a Flask app mounted under a sub-path. |
 
 ## 7. Project files, at a glance
 

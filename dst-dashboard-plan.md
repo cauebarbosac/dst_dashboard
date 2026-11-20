@@ -90,7 +90,7 @@ Each milestone is one git branch, merged when its **Done when** list passes, on 
   - "Python dev, new to web; explain new concepts briefly"
   - "phone portrait first"
   - "game rules only in `src/logic/`, always tested"
-- Set up automatic publishing to GitHub Pages on every push to `main`.
+- Set up automatic publishing to GitHub Pages on every push to `main` (`.github/workflows/deploy.yml`: lint + tests + build, then publish to `https://cauebarbosac.github.io/dst_dashboard/`; a failing test blocks the deploy).
 - **Done when:** a "Hello DST" page opens on your phone from the GitHub Pages link.
 
 ### M1: Hand-written game data
