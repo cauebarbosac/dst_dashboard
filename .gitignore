@@ -1,0 +1,28 @@
+# Dependencies (the Node equivalent of a venv lives here)
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+coverage/
+
+# Env / secrets (Firebase/Supabase keys at M11)
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# Local, personal Claude Code files
+CLAUDE.local.md
+.claude/settings.local.json
+
+# Editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.local
