@@ -29,7 +29,7 @@ During development:
 ## 1. Architecture in one picture
 
 ```
- data/ (hand-written)       board logic (pure functions)          UI (React, phone portrait)
+ src/data/ (hand-written)   board logic (pure functions)          UI (React, phone portrait)
  items, seasons,   ──────▶  state + actions + "derive the  ──────▶ cards, slots, buttons,
  crises, characters         board" rules, fully tested             screens
                                     ▲
@@ -42,16 +42,17 @@ The most important rule is that **all game rules live in plain functions with no
 
 ### Data model (sketch)
 
-**Static game data** (`data/`, hand-written):
+**Static game data** (`src/data/`, hand-written; inside `src/` so the app can import it):
 
-- `Item`: id, name, station (text, e.g. "Science Machine"), ingredients `[{ itemName }]` (full stacks, no amounts), quantity type: `once` | `perPlayer`
+- `Station`: a fixed list (Hand, Science Machine, Alchemy Engine…), so a typo can't create a fake station
+- `Item`: id, name, station (one of the `Station` list), ingredients `[{ name, amount }]` (one slot per ingredient, claimed as a full stack; `amount` is shown for information only, never picked), quantity type: `once` | `perPlayer`
 - `SeasonList`: season → ordered list of item ids
-- `Crisis`: id, name → ordered list of item ids
-- `Character`: id, name (images later)
+- `Crisis`: id, name, icon (an emoji until the images milestone) → ordered list of item ids
+- `Character`: id, name, tag (a short unique label like `WIL`, since almost every name starts with W; images later)
 
 **Session state** (changes during play):
 
-- `players`: id, characterId, color
+- `players`: id, characterId, color, **activity**: `none` | `cooking` (only `cooking` for now; more activities may come later)
 - `season`
 - `activeCrises`: ordered list, latest last
 - `cards`: for each item instance on the board:
@@ -69,6 +70,7 @@ The most important rule is that **all game rules live in plain functions with no
 - `restoreFromBuilt`
 - `setSeason` (moves unfinished items to the Unfinished business tab)
 - `triggerCrisis` / `endCrisis`
+- `toggleCooking` (switches that player's activity between `none` and `cooking`)
 
 ### Board rule ("what's on the board right now")
 
@@ -80,6 +82,16 @@ The most important rule is that **all game rules live in plain functions with no
 ---
 
 ## 2. Milestones
+
+### Progress (update at the end of every session)
+
+| Milestone | Status | Notes |
+|---|---|---|
+| M0 | ✅ done 2026-11-20 | Live at https://cauebarbosac.github.io/dst_dashboard/, opens on the phone |
+| M1 | ✅ done 2026-11-20 | Lists reviewed and approved. Data in `src/data/`, 25 tests green. Branch `m1-game-data` pushed; merge via PR. Windows note: run `npm test` from `C:\…`, not `c:\…` (BUG-001). |
+| M2 | ⏭ next | Board logic (incl. `toggleCooking`). Start a branch `m2-board-logic` from `main` after M1 is merged. |
+
+**Next session starts here:** read this table, then the milestone's section below.
 
 Each milestone is one git branch, merged when its **Done when** list passes, on a real phone where it matters. Each starts with a short Claude Code session where you paste that milestone's section.
 
@@ -94,8 +106,19 @@ Each milestone is one git branch, merged when its **Done when** list passes, on 
 - **Done when:** a "Hello DST" page opens on your phone from the GitHub Pages link.
 
 ### M1: Hand-written game data
-- Write `data/` files for about 8–12 items, 4 seasons and 3–4 crises, plus the character names.
-- Add a test that checks the data is consistent: every list points to existing items, no duplicates.
+- Write `src/data/` files for about 25 items, 4 seasons and 4 crises, the station list, and **all** DST characters (names + short tags).
+- Agreed lists (2026-11-20). Recipes checked on dontstarve.wiki.gg (DST versions):
+  - **Autumn:** Science Machine, Alchemy Engine, Crock Pot, Ice Box, Backpack, Log Suit
+  - **Winter:** Winter Hat, Puffy Vest, Thermal Stone, Fire Pit
+  - **Spring:** Umbrella, Rain Coat, Lightning Rod
+  - **Summer:** Ice Flingomatic, Endothermic Fire, Floral Shirt
+  - 🐕 **Hound wave:** Log Suit, Football Helmet, Tooth Trap
+  - 🥶 **Freezing:** Fire Pit, Thermal Stone, Winter Hat
+  - 🍖 **Starvation:** Crock Pot, Drying Rack, Bird Trap
+  - 💉 **Teammate down:** Telltale Heart, Booster Shot, Healing Salve, Honey Poultice
+- Start with these 4 crises only. The others from the idea file (Deerclops, Overheating, Wildfire, Low sanity) come after we've tried these.
+- **Booster Shot is `once`.** One is needed per revive, and the extra ones come back through the Built list ("direction, not counter", idea file section 6). No new quantity type.
+- Add a test that checks the data is consistent: every list points to existing items, no duplicates, every item's station is a known station, every crisis has an icon.
 - **Done when:** the data tests pass and you've reviewed the lists.
 
 ### M2: Board logic (no UI)
@@ -107,6 +130,7 @@ Each milestone is one git branch, merged when its **Done when** list passes, on 
   - season change moves items to Unfinished business
   - the latest crisis wins
   - restoring from Built
+  - `toggleCooking`: on, off, and only for that player
 - **Done when:** all rules from the idea file are covered by passing tests.
 
 ### M3: Read-only board on the phone
@@ -124,7 +148,8 @@ Each milestone is one git branch, merged when its **Done when** list passes, on 
 - Tap an empty slot to claim it: the slot grays out and shows the claimer's name tag with their color ring.
 - Tap your own claim to release it.
 - Tap the item title to claim or release the builder role.
-- **Done when:** claims and releases work, and an item can be split across players.
+- **Cooking button**, always visible: one tap toggles "I'm cooking". The board shows who's cooking (name tag + cooking mark).
+- **Done when:** claims and releases work, an item can be split across players, and cooking can be turned on and off.
 
 ### M6: My claims
 - A big button, always visible, that opens your claims across all cards: which ingredients you owe, for which item, and which items you're building. Releasing works from there too.
@@ -161,7 +186,7 @@ Each milestone is one git branch, merged when its **Done when** list passes, on 
 - **Same-tap conflicts:** if two players tap the same slot at the same moment, the first one wins and the other sees it taken. This is enforced on the service side.
 - **Unstable connections:** taps apply instantly on your screen, are sent when the connection is back, and a small "offline" indicator shows meanwhile.
 - N for per-player items = number of players in the room.
-- **Done when:** two phones in the same room see each other's claims within about a second, including after one of them briefly loses Wi-Fi.
+- **Done when:** two phones in the same room see each other's claims and cooking status within about a second, including after one of them briefly loses Wi-Fi.
 
 ### M12 and later (not planned in detail yet)
 - Images: character faces and item icons (assets kept out of the public repo)
@@ -196,7 +221,7 @@ From the idea file:
 - What happens to N when players join or leave mid-game?
 - How should crafted ingredients like Rope or Boards work?
 - Should already-built crisis items still show up?
-- What goes in each season and crisis list?
+- ~~What goes in each season and crisis list?~~ First lists agreed in M1 (2026-11-20).
 
 New:
 - **K:** how many cards are visible at once, 3 or 4?
