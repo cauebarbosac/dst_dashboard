@@ -104,7 +104,8 @@ Derived views the UI reads (`board.ts`): `visibleBoard`, `boardQueue`, `unfinish
 | M6 | ✅ done 2026-11-21 | My claims button (with count) + My claims screen with release and take-back, 166 tests green. Phone-checked by the user. Branch `m6-my-claims` pushed; merge via PR. |
 | M7 | ✅ done 2026-11-21 | Hold to build (with N checks), Built list with hold to send back, 178 tests green. Phone-checked by the user. Branch `m7-building` pushed, PR opened by Claude. |
 | M8 | ✅ done 2026-11-21 | Season picker, Unfinished business tab, season bar removed from the dock; My claims got the cooking strip and the same two-button dock as the board. 182 tests green. Phone-checked by the user. Branch `m8-seasons` pushed, PR opened by Claude. |
-| M9 | ⏭ next | Crisis mode. |
+| M9 | ✅ done 2026-11-21 | Crisis buttons in the dock, red banners (tap to end), crisis cards marked. 190 tests green. Phone-checked by the user. Branch `m9-crisis` pushed, PR opened by Claude. |
+| M10 | ⏭ next | Installable phone app (PWA). |
 
 **Next session starts here:** read this table, then the milestone's section below.
 
@@ -247,6 +248,16 @@ Each milestone is one git branch, merged when its **Done when** list passes, on 
 ### M9: Crisis mode
 - A row of big crisis buttons. Triggering one shows a red banner and pulls the crisis items to the top. Tapping the banner ends it.
 - Several crises can be active at once, and the latest one wins.
+- As built:
+  - **Crisis buttons** (`src/ui/Crisis.tsx`): a row of 4 in the bottom dock, above My claims / I'm cooking: 🐕 Hound wave, 🥶 Freezing, 🍖 Starvation, 💉 Teammate down. **One tap starts a crisis** (speed matters; a mis-tap costs one tap on the banner). Active ones turn red. Tapping an active one moves it back to the top. `crisisOptions` in `view.ts`, tested.
+  - **Red banners** under the header, one per active crisis, latest on top (bigger, solid red); **one tap on a banner ends that crisis**. Shown on My claims too.
+  - **Crisis cards**: red border and the crisis emoji before the name (e.g. "💉 Booster Shot"), so it's clear why they jumped up. An item needed by two crises shows the latest one. `cardView.crisisIcon`, `boardView.crises`, tested.
+  - Blinking, sounds and the final look are left for the visuals milestone (M12), as the idea file says.
+- Phone checklist:
+  - [x] Starting a crisis is one quick tap; the board switches right away.
+  - [x] Two crises at once: the latest is clearly on top.
+  - [x] Tapping a banner ends that crisis; the board goes back.
+  - [x] With banners + the crisis row, enough of the cards is still visible.
 - **Done when:** triggering and ending crises, including two at once, reorders the board correctly.
 
 ### M10: Installable phone app (PWA)
