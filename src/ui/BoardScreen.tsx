@@ -24,6 +24,7 @@ export function BoardScreen({
 }: BoardScreenProps) {
   const board = boardView(state)
   const players = playerTags(state)
+  const amCooking = board.cooks.some((t) => t.playerId === me)
 
   return (
     <div className="app">
@@ -61,6 +62,17 @@ export function BoardScreen({
         </div>
       )}
 
+      {/* Everyone sees who's cooking. Only who, not what: talk about the rest. */}
+      {board.cooks.length > 0 && (
+        <div className="cookstrip" role="status">
+          <span aria-hidden="true">🍲</span>
+          {board.cooks.map((t) => (
+            <PlayerTag key={t.playerId} tag={t} />
+          ))}
+          <span>{board.cooks.length === 1 ? 'is cooking' : 'are cooking'}</span>
+        </div>
+      )}
+
       <main className="board">
         {board.cards.map((card) => (
           <ItemCard
@@ -91,22 +103,35 @@ export function BoardScreen({
         )}
       </main>
 
-      {/* Bottom = thumb reach. A preview control; the real one-tap season
-          control comes in M8. */}
-      <nav className="seasonbar" aria-label="Season">
-        {SEASON_ORDER.map((season) => (
+      {/* Bottom dock = thumb reach: main actions, then the seasons. */}
+      <footer className="dock">
+        <div className="actionbar">
           <button
-            key={season}
             type="button"
-            className="season-button"
-            aria-pressed={state.season === season}
-            onClick={() => dispatch({ type: 'setSeason', season })}
+            className="cook-button"
+            aria-pressed={amCooking}
+            onClick={() => dispatch({ type: 'toggleCooking', playerId: me })}
           >
-            <span aria-hidden="true">{SEASON_ICONS[season]}</span>
-            {SEASON_NAMES[season]}
+            {amCooking ? '🍲 Cooking… tap when done' : '🍲 I’m cooking'}
           </button>
-        ))}
-      </nav>
+        </div>
+
+        {/* A preview control; the real one-tap season control comes in M8. */}
+        <nav className="seasonbar" aria-label="Season">
+          {SEASON_ORDER.map((season) => (
+            <button
+              key={season}
+              type="button"
+              className="season-button"
+              aria-pressed={state.season === season}
+              onClick={() => dispatch({ type: 'setSeason', season })}
+            >
+              <span aria-hidden="true">{SEASON_ICONS[season]}</span>
+              {SEASON_NAMES[season]}
+            </button>
+          ))}
+        </nav>
+      </footer>
     </div>
   )
 }

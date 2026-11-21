@@ -273,16 +273,63 @@ button:active {
   color: var(--ring-green);
 }
 
-/* ── Bottom bar (thumb reach) ── */
-.seasonbar {
+/* ── "Who's cooking" strip (M5), seen by everyone ── */
+.cookstrip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 16px 4px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: var(--claimed);
+  border: 2px solid var(--accent);
+  font-weight: 600;
+}
+
+.cookstrip .tag {
+  min-width: 34px;
+  height: 34px;
+}
+
+/* ── Bottom dock (thumb reach): main actions, then seasons ── */
+.dock {
   position: sticky;
   bottom: 0;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 8px;
   padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
   background: var(--bg);
   border-top: 1px solid var(--panel-edge);
+}
+
+.actionbar {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 8px;
+}
+
+.cook-button {
+  min-height: 64px;
+  border-radius: 12px;
+  border: 2px solid var(--panel-edge);
+  background: var(--panel);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.cook-button[aria-pressed='true'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+
+.seasonbar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
 }
 
 .season-button {

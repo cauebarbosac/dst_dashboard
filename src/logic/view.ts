@@ -5,7 +5,7 @@ import { CHARACTERS } from '../data/characters'
 import { ITEMS, type ItemId } from '../data/items'
 import { SEASON_ICONS, SEASON_NAMES } from '../data/seasons'
 import { STATIONS } from '../data/stations'
-import { boardQueue, visibleBoard } from './board'
+import { boardQueue, cooks, visibleBoard } from './board'
 import { requiredChecks } from './building'
 import { cardOf, findPlayer, type GameState, type PlayerId } from './state'
 
@@ -36,6 +36,8 @@ export type BoardView = {
   cards: CardView[]
   /** How many items wait behind the visible cards. */
   hiddenCount: number
+  /** Who's cooking right now (shown to everyone). */
+  cooks: Tag[]
 }
 
 function tagOf(state: GameState, playerId: PlayerId | null | undefined) {
@@ -87,5 +89,6 @@ export function boardView(state: GameState, size?: number): BoardView {
     seasonIcon: SEASON_ICONS[state.season],
     cards: visible.map((id) => cardView(state, id)),
     hiddenCount: boardQueue(state).length - visible.length,
+    cooks: cooks(state).map((p) => tagOf(state, p.id) as Tag),
   }
 }
