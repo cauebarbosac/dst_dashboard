@@ -50,6 +50,17 @@ function tagOf(state: GameState, playerId: PlayerId | null | undefined) {
   } satisfies Tag
 }
 
+/** A player as listed in setup and the switcher: tag + character name. */
+export type PlayerEntry = Tag & { name: string }
+
+/** Every player, in joining order (for the switcher and setup). */
+export function playerTags(state: GameState): PlayerEntry[] {
+  return state.players.map((p) => ({
+    ...(tagOf(state, p.id) as Tag),
+    name: CHARACTERS.find((c) => c.id === p.characterId)?.name ?? '?',
+  }))
+}
+
 export function cardView(state: GameState, itemId: ItemId): CardView {
   const item = ITEMS[itemId]
   const card = cardOf(state, itemId)

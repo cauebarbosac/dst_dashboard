@@ -98,7 +98,9 @@ Derived views the UI reads (`board.ts`): `visibleBoard`, `boardQueue`, `unfinish
 | M0 | ✅ done 2026-11-20 | Live at https://cauebarbosac.github.io/dst_dashboard/, opens on the phone |
 | M1 | ✅ done 2026-11-20 | Lists reviewed and approved. Data in `src/data/`, 25 tests green. Branch `m1-game-data` pushed; merge via PR. Windows note: run `npm test` from `C:\…`, not `c:\…` (BUG-001). |
 | M2 | ✅ done 2026-11-21 | All rules in `src/logic/`, 100 tests green (incl. M1's 24). Defaults for the open questions approved (section 5). Branch `m2-board-logic` pushed; merge via PR. |
-| M3 | 🟡 awaiting phone check | Branch `m3-read-only-board` pushed; merge via PR. Board screen built (`src/ui/`, `src/App.tsx`), 118 tests green, checked at 360px and 390px in a headless browser. **Claiming by tap pulled forward from M5** (user request 2026-11-21), with a temporary 2-player demo switch. Next: you run the phone checklist in the M3 section. |
+| M3 | ✅ merged 2026-11-21 (PR #4) | Board screen + claiming by tap (pulled forward from M5). Phone checklist (M3 section) not reported yet; the 3-vs-4 cards question is still open. |
+| M4 | ✅ done 2026-11-21 | Players setup, player switcher, saving on the phone (`src/storage/`), remove / new game by tap-then-hold (1.5 s). 154 tests green. Phone-checked by the user. Branch `m4-players-and-saving` pushed; merge via PR. |
+| M5 | ⏭ next | Claiming is already done (M3); left: the cooking button. Start a branch from `main` after M4 is merged. |
 
 **Next session starts here:** read this table, then the milestone's section below.
 
@@ -164,6 +166,18 @@ Each milestone is one git branch, merged when its **Done when** list passes, on 
 - Setup screen: add players and pick characters (as text), with automatic color rings.
 - Each device remembers "I am this player." In this single-phone phase there's also a small **player switcher** for testing or passing the phone around. It goes away once sync arrives.
 - State is saved on the phone and survives reloads and closing the app.
+- As built:
+  - **Setup screen** (`src/ui/SetupScreen.tsx`): tap a character to add a player (colors automatic); ✕ then hold to remove one; "New game" works the same way. Opens by itself when there are no players; later via the 👥 button on the board.
+  - **`removePlayer`** (rule, tested): releases their claims and builder roles; N shrinks, so a per-player item whose checks now reach N is built.
+  - **Player switcher**: the "You:" row on the board, shown when there are 2+ players. Goes away in M11.
+  - **Saving** (`src/storage/store.ts`): a `GameStore` adapter with a localStorage version. The game and "I am this player" are saved separately (the second belongs to the device, not the shared game). A save from another version, or a damaged one, is ignored instead of crashing; items, crises or players that no longer exist are dropped.
+  - **Tap, then hold to confirm** anything that loses data (`src/ui/ConfirmButton.tsx`, steps in `src/ui/holdToConfirm.ts`, tested): the first tap arms the button ("Hold to remove" / "Hold: erase all"), then press and hold until a red bar fills (`HOLD_MS` = 1.5 s). Lifting early or sliding off cancels; it disarms by itself after 4 s. No dialogs, no typing. (User request 2026-11-21, after the phone test.)
+  - The M3 demo game is gone.
+- Phone checklist:
+  - [x] Adding 2–3 players is quick and obvious.
+  - [x] Close the app (or the tab), reopen: players, "You:", claims and season are all still there.
+  - [x] Removing a player and "New game" can't happen by accident. (Made stricter: tap, then hold.)
+  - [x] The hold (1.5 s) feels right: not too short, not annoying.
 - **Done when:** you set up 2–3 players, close the app, reopen it, and everything is still there.
 
 ### M5: Claiming
@@ -238,7 +252,7 @@ Each milestone is one git branch, merged when its **Done when** list passes, on 
 From the idea file:
 - ~~Do items in Unfinished business keep their claims?~~ **Yes** (M2): they keep claims and checks.
 - ~~Does an item restored from Built start fresh?~~ **Yes** (M2): no claims, no builder, no checks.
-- What happens to N when players join or leave mid-game? **Join:** N follows the live player count (M2). **Leave:** still open; there's no "remove player" yet (M4/M11).
+- ~~What happens to N when players join or leave mid-game?~~ **Join:** N follows the live player count (M2). **Leave** (M4): their claims are released and N shrinks; items whose checks now reach N are built.
 - How should crafted ingredients like Rope or Boards work?
 - ~~Should already-built crisis items still show up?~~ **No** (M2): built items are skipped everywhere. Restore one from Built if it's needed again.
 - ~~What goes in each season and crisis list?~~ First lists agreed in M1 (2026-11-20).
@@ -246,6 +260,6 @@ From the idea file:
 New:
 - **K:** how many cards are visible at once, 3 or 4? Set to **3** for now (`BOARD_SIZE`); decide on the phone at M3.
 - **Undoing a check:** decided for now (2026-11-21): a mistaken long press is fixed by restoring the item from the Built list (it comes back fresh). Revisit "undo last check" only if it hurts in play.
-- **Long-press time:** 2 s, or shorter (1.5 s)?
+- **Long-press time:** 2 s, or shorter (1.5 s)? The hold-to-confirm uses **1.5 s** (`HOLD_MS`, M4); M7's build long press can share it once tried on the phone.
 - **Hosted service:** Firebase or Supabase. Decide at M11 after checking current free-tier terms.
 - **Rooms:** should a room live for the whole world/playthrough and be reused across play sessions?
