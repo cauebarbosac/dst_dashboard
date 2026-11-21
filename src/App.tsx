@@ -5,6 +5,7 @@ import { createGame, type PlayerId } from './logic/state'
 import { playerTags } from './logic/view'
 import { browserStorage, createLocalStore } from './storage/store'
 import { BoardScreen } from './ui/BoardScreen'
+import { BuiltScreen } from './ui/BuiltScreen'
 import { MyClaimsScreen } from './ui/MyClaimsScreen'
 import { SetupScreen } from './ui/SetupScreen'
 
@@ -23,8 +24,8 @@ export default function App() {
   )
   // useState: single values React remembers between redraws.
   const [rememberedMe, setMe] = useState<PlayerId | null>(() => store.loadMe())
-  const [screen, setScreen] = useState<'setup' | 'board' | 'claims'>(() =>
-    state.players.length === 0 ? 'setup' : 'board',
+  const [screen, setScreen] = useState<'setup' | 'board' | 'claims' | 'built'>(
+    () => (state.players.length === 0 ? 'setup' : 'board'),
   )
   const me = resolveMe(state, rememberedMe)
 
@@ -40,6 +41,16 @@ export default function App() {
         onRemove={(playerId) => dispatch({ type: 'removePlayer', playerId })}
         onNewGame={() => dispatch({ type: 'newGame' })}
         onDone={() => setScreen('board')}
+      />
+    )
+  }
+
+  if (screen === 'built') {
+    return (
+      <BuiltScreen
+        state={state}
+        dispatch={dispatch}
+        onBack={() => setScreen('board')}
       />
     )
   }
@@ -62,6 +73,7 @@ export default function App() {
       onSwitchPlayer={setMe}
       onOpenSetup={() => setScreen('setup')}
       onOpenClaims={() => setScreen('claims')}
+      onOpenBuilt={() => setScreen('built')}
       dispatch={dispatch}
     />
   )

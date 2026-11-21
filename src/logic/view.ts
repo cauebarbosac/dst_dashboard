@@ -5,7 +5,7 @@ import { CHARACTERS } from '../data/characters'
 import { ITEMS, type ItemId } from '../data/items'
 import { SEASON_ICONS, SEASON_NAMES } from '../data/seasons'
 import { STATIONS } from '../data/stations'
-import { boardQueue, cooks, myClaims, visibleBoard } from './board'
+import { boardQueue, builtItems, cooks, myClaims, visibleBoard } from './board'
 import { requiredChecks } from './building'
 import { cardOf, findPlayer, type GameState, type PlayerId } from './state'
 
@@ -136,4 +136,16 @@ export function myClaimsView(
     0,
   )
   return { items, count }
+}
+
+// ── Built list (M7) ──
+
+export type BuiltItemView = { itemId: ItemId; name: string }
+
+/** Everything built so far (long-press one to send it back to the board). */
+export function builtListView(state: GameState): BuiltItemView[] {
+  return builtItems(state).map((itemId) => ({
+    itemId,
+    name: ITEMS[itemId].name,
+  }))
 }

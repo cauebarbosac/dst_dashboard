@@ -8,6 +8,7 @@ import {
 import { claimBuilder, claimSlot } from '../../src/logic/claims'
 import { addPlayer } from '../../src/logic/players'
 import { cardOf, createGame, FRESH_CARD } from '../../src/logic/state'
+import { builtListView } from '../../src/logic/view'
 import { gameWith, repeat } from './helpers'
 
 const SM = 'science-machine' // once
@@ -103,5 +104,33 @@ describe('M2 restoring from the Built list', () => {
   it('restoring an item that is not built changes nothing', () => {
     const game = gameWith('wilson')
     expect(restoreFromBuilt(game, SM)).toBe(game)
+  })
+})
+
+describe('M7 Built list view', () => {
+  it('is empty at the start', () => {
+    expect(builtListView(gameWith('wilson'))).toEqual([])
+  })
+
+  it('lists built items by name', () => {
+    let game = markBuilt(gameWith('wilson'), 'crock-pot')
+    game = markBuilt(game, 'science-machine')
+    expect(builtListView(game)).toEqual([
+      { itemId: 'science-machine', name: 'Science Machine' },
+      { itemId: 'crock-pot', name: 'Crock Pot' },
+    ])
+  })
+
+  it('a per-player item appears only once all N checks are done', () => {
+    let game = markBuilt(gameWith('wilson', 'willow'), 'backpack')
+    expect(builtListView(game)).toEqual([])
+    game = markBuilt(game, 'backpack')
+    expect(builtListView(game).map((b) => b.itemId)).toEqual(['backpack'])
+  })
+
+  it('an item sent back to the board leaves the Built list', () => {
+    let game = markBuilt(gameWith('wilson'), 'crock-pot')
+    game = restoreFromBuilt(game, 'crock-pot')
+    expect(builtListView(game)).toEqual([])
   })
 })
