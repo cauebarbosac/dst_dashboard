@@ -42,7 +42,7 @@ export function SetupScreen({
                 <ConfirmButton
                   className="remove-button"
                   ariaLabel={`Remove ${p.name}`}
-                  armedLabel="Remove?"
+                  armedLabel="Hold to remove"
                   onConfirm={() => onRemove(p.playerId)}
                 >
                   ✕
@@ -73,7 +73,7 @@ export function SetupScreen({
       <nav className="bottombar">
         <ConfirmButton
           className="secondary-button"
-          armedLabel="Tap again: erase all"
+          armedLabel="Hold: erase all"
           onConfirm={onNewGame}
         >
           New game

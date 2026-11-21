@@ -358,6 +358,38 @@ button:active {
   font-size: 1.1rem;
 }
 
+/* Tap-then-hold buttons: a red bar fills the button while held. */
+.hold-button {
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none; /* no iPhone long-press menu */
+}
+
+.hold-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--ring-red);
+  opacity: 0.35;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.hold-button.holding::before {
+  transform: scaleX(1);
+  transition: transform var(--hold-ms) linear;
+}
+
+.hold-button.holding:active {
+  transform: none; /* keep the bar steady, no "pressed" shrink */
+}
+
+.hold-label {
+  position: relative; /* above the bar */
+}
+
 .remove-button.armed,
 .secondary-button.armed {
   border-color: var(--ring-red);

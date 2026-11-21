@@ -1,14 +1,28 @@
-// A button for actions that lose something (new game, removing a player
-// mid-game). First tap arms it ("Tap again"), a second tap within 3 s
-// does it. Waiting, or tapping elsewhere, cancels: no dialog, no typing.
+// A button for actions that lose data (new game, removing a player).
+// First tap arms it; then press and HOLD until the bar fills (HOLD_MS).
+// Lifting early, sliding off, or waiting too long cancels. No dialogs,
+// no typing. The steps themselves live in holdToConfirm.ts (tested).
 
-import { useEffect, useState, type ReactNode } from 'react'
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react'
+import {
+  ARMED_MS,
+  HOLD_MS,
+  nextHoldPhase,
+  type HoldEvent,
+  type HoldPhase,
+} from './holdToConfirm'
 
 type ConfirmButtonProps = {
   className?: string
   onConfirm: () => void
   children: ReactNode
-  /** What the button says while armed. */
+  /** What the button says once armed, e.g. "Hold to remove". */
   armedLabel?: ReactNode
   ariaLabel?: string
 }
@@ -17,35 +31,49 @@ export function ConfirmButton({
   className = '',
   onConfirm,
   children,
-  armedLabel = 'Tap again',
+  armedLabel = 'Hold to confirm',
   ariaLabel,
 }: ConfirmButtonProps) {
-  const [armed, setArmed] = useState(false)
-
-  // useEffect: run some code *after* drawing, here a 3-second timer that
-  // disarms the button. The returned function cancels the timer if the
-  // button disappears or is tapped again first.
+  const [phase, setPhase] = useState<HoldPhase>('idle')
+  // useRef: a box React keeps between redraws without redrawing when it
+  // changes. Holds the latest onConfirm for the timer below.
+  const confirmRef = useRef(onConfirm)
   useEffect(() => {
-    if (!armed) return
-    const timer = setTimeout(() => setArmed(false), 3000)
-    return () => clearTimeout(timer)
-  }, [armed])
+    confirmRef.current = onConfirm
+  })
 
+  const send = (event: HoldEvent) => setPhase((p) => nextHoldPhase(p, event))
+
+  // Timers per phase: armed waits for the hold, holding counts the hold,
+  // confirmed clears itself if no click follows.
+  useEffect(() => {
+    if (phase === 'idle') return
+    const ms =
+      phase === 'armed' ? ARMED_MS : phase === 'holding' ? HOLD_MS : 500
+    const event: HoldEvent = phase === 'holding' ? 'held' : 'timeout'
+    const timer = setTimeout(() => {
+      send(event)
+      if (event === 'held') confirmRef.current()
+    }, ms)
+    return () => clearTimeout(timer)
+  }, [phase])
+
+  const armed = phase === 'armed' || phase === 'holding'
   return (
     <button
       type="button"
-      className={`${className} ${armed ? 'armed' : ''}`}
+      className={`hold-button ${className} ${armed ? 'armed' : ''} ${phase === 'holding' ? 'holding' : ''}`}
+      style={{ '--hold-ms': `${HOLD_MS}ms` } as CSSProperties}
       aria-label={ariaLabel}
-      onClick={() => {
-        if (armed) {
-          setArmed(false)
-          onConfirm()
-        } else {
-          setArmed(true)
-        }
-      }}
+      onClick={() => send('tap')}
+      onPointerDown={() => send('press')}
+      onPointerUp={() => send('release')}
+      onPointerLeave={() => send('release')}
+      onPointerCancel={() => send('release')}
+      // Stop the phone's own long-press menu from popping up while holding.
+      onContextMenu={(e) => e.preventDefault()}
     >
-      {armed ? armedLabel : children}
+      <span className="hold-label">{armed ? armedLabel : children}</span>
     </button>
   )
 }
