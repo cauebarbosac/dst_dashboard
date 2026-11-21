@@ -139,6 +139,7 @@ Small syntax crib:
 | **`useRef`** | A box React keeps between redraws, *without* redrawing when its content changes. Like an attribute on `self` that the UI doesn't watch. |
 | **Pointer events** (`onPointerDown`, `onPointerUp`, …) | Finger/mouse down and up, as separate events (a click is the two together). Needed to measure a *hold*. |
 | **State machine** | A fixed set of phases plus "on event X, go from phase A to B". `src/ui/holdToConfirm.ts` is one, written as a pure function so it's easy to test. |
+| **Custom hook** (`usePressOrHold`) | Your own function starting with `use` that bundles React state + effects for reuse. Like a small mixin you can give to any component. |
 
 ## 6. Browser & web-app concepts
 

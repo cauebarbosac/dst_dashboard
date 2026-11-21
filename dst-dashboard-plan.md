@@ -102,7 +102,8 @@ Derived views the UI reads (`board.ts`): `visibleBoard`, `boardQueue`, `unfinish
 | M4 | ✅ done 2026-11-21 | Players setup, player switcher, saving on the phone (`src/storage/`), remove / new game by tap-then-hold (1.5 s). 154 tests green. Phone-checked by the user. Branch `m4-players-and-saving` pushed; merge via PR. |
 | M5 | ✅ done 2026-11-21 | Cooking button + "who's cooking" strip (claiming was done in M3), 158 tests green. Phone-checked by the user. Branch `m5-cooking` pushed; merge via PR. Still open: 2, 3 or 4 cards. |
 | M6 | ✅ done 2026-11-21 | My claims button (with count) + My claims screen with release and take-back, 166 tests green. Phone-checked by the user. Branch `m6-my-claims` pushed; merge via PR. |
-| M7 | ⏭ next | Building (long press), quantities and the Built list. |
+| M7 | ✅ done 2026-11-21 | Hold to build (with N checks), Built list with hold to send back, 178 tests green. Phone-checked by the user. Branch `m7-building` pushed, PR opened by Claude. |
+| M8 | ⏭ next | Seasons and Unfinished business. |
 
 **Next session starts here:** read this table, then the milestone's section below.
 
@@ -214,6 +215,17 @@ Each milestone is one git branch, merged when its **Done when** list passes, on 
 - Block the phone's own long-press behavior (text selection, context menu) on cards. This is a known pitfall on mobile.
 - Items with quantity N show N check slots, and the card leaves the board when all N are checked.
 - A Built list button; long-pressing an item there restores it to the board.
+- As built:
+  - **On the item name of a card: tap = builder role (M3), hold = built.** A green bar fills while you hold (`HOLD_MS` = 1.5 s, the same as hold-to-confirm). A completed hold never also counts as a tap. The steps are a pure, tested state machine (`src/ui/pressOrHold.ts`) with a reusable hook (`usePressOrHold`).
+  - Items needed N times fill one check per hold; the card leaves the board after the N-th.
+  - Text selection and the phone's long-press menu are blocked on cards and lists.
+  - **"✓ N" button** at the top (next to 👥) opens the **Built list** (`src/ui/BuiltScreen.tsx`, `builtListView` tested). Hold an item there to send it back to the board (fresh: no claims, no checks). A tap there does nothing.
+  - Card station line says "· hold to build" as a hint.
+- Phone checklist:
+  - [x] Tap on the item name still claims the builder role; a hold never does by accident.
+  - [x] Building a once-item and an N-item (2 players) works; check slots fill one per hold.
+  - [x] Sending an item back from the Built list works.
+  - [x] Scrolling the board with a finger on a card doesn't build anything.
 - **Done when:** a once-item and an N-item can be built on the phone, and both can be restored.
 
 ### M8: Seasons and Unfinished business
