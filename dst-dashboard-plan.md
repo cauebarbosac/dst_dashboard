@@ -98,7 +98,7 @@ Derived views the UI reads (`board.ts`): `visibleBoard`, `boardQueue`, `unfinish
 | M0 | ✅ done 2026-11-20 | Live at https://cauebarbosac.github.io/dst_dashboard/, opens on the phone |
 | M1 | ✅ done 2026-11-20 | Lists reviewed and approved. Data in `src/data/`, 25 tests green. Branch `m1-game-data` pushed; merge via PR. Windows note: run `npm test` from `C:\…`, not `c:\…` (BUG-001). |
 | M2 | ✅ done 2026-11-21 | All rules in `src/logic/`, 100 tests green (incl. M1's 24). Defaults for the open questions approved (section 5). Branch `m2-board-logic` pushed; merge via PR. |
-| M3 | ⏭ next | Read-only board on the phone. |
+| M3 | 🟡 awaiting phone check | Branch `m3-read-only-board` pushed; merge via PR. Board screen built (`src/ui/`, `src/App.tsx`), 118 tests green, checked at 360px and 390px in a headless browser. **Claiming by tap pulled forward from M5** (user request 2026-11-21), with a temporary 2-player demo switch. Next: you run the phone checklist in the M3 section. |
 
 **Next session starts here:** read this table, then the milestone's section below.
 
@@ -145,6 +145,19 @@ Each milestone is one git branch, merged when its **Done when** list passes, on 
 ### M3: Read-only board on the phone
 - Portrait layout: season label at the top, K big item cards. Each card shows item name, station text, ingredient slots and check slots.
 - Touch targets are big (at least ~56px, and larger for main buttons), and the most-used controls sit within thumb reach.
+- As built:
+  - **What a card shows is worked out in `src/logic/view.ts`** (`cardView`, `boardView`), with tests. The components in `src/ui/` only draw it.
+  - Card: item name + station ("✋ By hand" when there is none), builder tag on the item, one slot per ingredient with `×amount`, check slots only when N > 1. A claimed slot is grayed out with the claimer's tag in their color ring.
+  - Season label with an emoji at the top; "+N more waiting" under the cards; 4 season buttons in a bottom bar (thumb reach). This is a **preview control**; the real one-tap season control is M8.
+  - **Temporary demo game** (2 players, one claim, one builder) so there's something to look at. It goes away in M4.
+  - **Claiming pulled forward from M5** (2026-11-21, to try it early): tap a slot to claim, tap your own claim to release, tap the item to be or stop being the builder. Someone else's claim can't be taken. The rule is `tapSlot` / `tapBuilder` in `src/logic/claims.ts`. A temporary **"You:" switch** (WIL / WLO) picks which demo player is tapping. Not saved yet: a reload starts over (saving is M4).
+- Phone checklist:
+  - [ ] Every card's text is readable at arm's length.
+  - [ ] Nothing is cut off or scrolls sideways.
+  - [ ] Season buttons are easy to hit with the thumb, one-handed.
+  - [ ] 3 cards (`BOARD_SIZE`) feel right, or should it be 4 (or 2)?
+  - [ ] Claimed slot vs free slot is obvious at a glance.
+  - [ ] Claiming and releasing by tap feels right; switching "You:" and trying to take the other player's claim does nothing.
 - **Done when:** the board for a chosen season looks right and is easy to read on your phone.
 
 ### M4: Players, identity and local saving
@@ -154,9 +167,7 @@ Each milestone is one git branch, merged when its **Done when** list passes, on 
 - **Done when:** you set up 2–3 players, close the app, reopen it, and everything is still there.
 
 ### M5: Claiming
-- Tap an empty slot to claim it: the slot grays out and shows the claimer's name tag with their color ring.
-- Tap your own claim to release it.
-- Tap the item title to claim or release the builder role.
+- *Already done early in M3:* tap a slot to claim it or release your own claim, tap the item for the builder role. M5 re-checks them with the real players from M4.
 - **Cooking button**, always visible: one tap toggles "I'm cooking". The board shows who's cooking (name tag + cooking mark).
 - **Done when:** claims and releases work, an item can be split across players, and cooking can be turned on and off.
 
