@@ -44,6 +44,8 @@ describe('M2 actions (the only way state changes)', () => {
       },
       { type: 'claimBuilder', playerId: 'p1', itemId: 'crock-pot' },
       { type: 'releaseBuilder', playerId: 'p1', itemId: 'crock-pot' },
+      { type: 'tapSlot', playerId: 'p1', itemId: 'crock-pot', slotIndex: 1 },
+      { type: 'tapBuilder', playerId: 'p1', itemId: 'crock-pot' },
       { type: 'markBuilt', itemId: 'crock-pot' },
       { type: 'restoreFromBuilt', itemId: 'crock-pot' },
       { type: 'setSeason', season: 'summer' },

@@ -11,6 +11,14 @@ export const SEASON_NAMES: Record<Season, string> = {
   summer: 'Summer',
 }
 
+/** An emoji per season until the images milestone. */
+export const SEASON_ICONS: Record<Season, string> = {
+  autumn: '🍂',
+  winter: '❄️',
+  spring: '🌧️',
+  summer: '☀️',
+}
+
 /** Each season's objectives, in priority order (first = most important). */
 export const SEASON_LISTS: Record<Season, ItemId[]> = {
   autumn: [

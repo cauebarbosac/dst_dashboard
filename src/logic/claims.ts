@@ -82,3 +82,30 @@ export function releaseBuilder(
   if (card.builder !== playerId) return state
   return withCard(state, itemId, { ...card, builder: null })
 }
+
+// ── One-tap toggles (what a tap on the screen means) ──
+
+/** Tap a slot: empty → I claim it; mine → I release it; someone else's → nothing. */
+export function tapSlot(
+  state: GameState,
+  playerId: PlayerId,
+  itemId: ItemId,
+  slotIndex: number,
+): GameState {
+  if (!(itemId in ITEMS)) return state
+  return cardOf(state, itemId).claims[slotIndex] === playerId
+    ? releaseSlot(state, playerId, itemId, slotIndex)
+    : claimSlot(state, playerId, itemId, slotIndex)
+}
+
+/** Tap the item: same toggle for the builder role. */
+export function tapBuilder(
+  state: GameState,
+  playerId: PlayerId,
+  itemId: ItemId,
+): GameState {
+  if (!(itemId in ITEMS)) return state
+  return cardOf(state, itemId).builder === playerId
+    ? releaseBuilder(state, playerId, itemId)
+    : claimBuilder(state, playerId, itemId)
+}

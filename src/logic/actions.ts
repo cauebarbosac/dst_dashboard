@@ -4,7 +4,14 @@
 import type { ItemId } from '../data/items'
 import type { Season } from '../data/types'
 import { markBuilt, restoreFromBuilt } from './building'
-import { claimBuilder, claimSlot, releaseBuilder, releaseSlot } from './claims'
+import {
+  claimBuilder,
+  claimSlot,
+  releaseBuilder,
+  releaseSlot,
+  tapBuilder,
+  tapSlot,
+} from './claims'
 import { endCrisis, triggerCrisis } from './crises'
 import { addPlayer, pickCharacter, toggleCooking } from './players'
 import { setSeason } from './seasons'
@@ -24,6 +31,8 @@ export type Action =
     }
   | { type: 'claimBuilder'; playerId: PlayerId; itemId: ItemId }
   | { type: 'releaseBuilder'; playerId: PlayerId; itemId: ItemId }
+  | { type: 'tapSlot'; playerId: PlayerId; itemId: ItemId; slotIndex: number }
+  | { type: 'tapBuilder'; playerId: PlayerId; itemId: ItemId }
   | { type: 'markBuilt'; itemId: ItemId }
   | { type: 'restoreFromBuilt'; itemId: ItemId }
   | { type: 'setSeason'; season: Season }
@@ -50,6 +59,10 @@ export function applyAction(state: GameState, action: Action): GameState {
       return claimBuilder(state, action.playerId, action.itemId)
     case 'releaseBuilder':
       return releaseBuilder(state, action.playerId, action.itemId)
+    case 'tapSlot':
+      return tapSlot(state, action.playerId, action.itemId, action.slotIndex)
+    case 'tapBuilder':
+      return tapBuilder(state, action.playerId, action.itemId)
     case 'markBuilt':
       return markBuilt(state, action.itemId)
     case 'restoreFromBuilt':
