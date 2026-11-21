@@ -3,6 +3,8 @@ import { SEASON_LISTS } from '../../src/data/seasons'
 import { boardQueue, topCrisis, visibleBoard } from '../../src/logic/board'
 import { markBuilt } from '../../src/logic/building'
 import { endCrisis, triggerCrisis } from '../../src/logic/crises'
+import { setSeason } from '../../src/logic/seasons'
+import { boardView, cardView, crisisOptions } from '../../src/logic/view'
 import { gameWith } from './helpers'
 
 describe('M2 crisis mode', () => {
@@ -80,5 +82,75 @@ describe('M2 crisis mode', () => {
     const game = gameWith('wilson')
     expect(triggerCrisis(game, 'meteor-shower')).toBe(game)
     expect(endCrisis(game, 'freezing')).toBe(game)
+  })
+})
+
+describe('M9 crisis mode on screen', () => {
+  it('the crisis buttons list the 4 crises with their icons, none active', () => {
+    expect(
+      crisisOptions(gameWith('wilson')).map((c) => [c.icon, c.name, c.active]),
+    ).toEqual([
+      ['🐕', 'Hound wave', false],
+      ['🥶', 'Freezing', false],
+      ['🍖', 'Starvation', false],
+      ['💉', 'Teammate down', false],
+    ])
+  })
+
+  it('an active crisis is marked on its button', () => {
+    const game = triggerCrisis(gameWith('wilson'), 'freezing')
+    expect(
+      crisisOptions(game)
+        .filter((c) => c.active)
+        .map((c) => c.id),
+    ).toEqual(['freezing'])
+  })
+
+  it('no banners when there is no crisis', () => {
+    expect(boardView(gameWith('wilson')).crises).toEqual([])
+  })
+
+  it('one banner per active crisis, latest first', () => {
+    let game = triggerCrisis(gameWith('wilson'), 'hound-wave')
+    game = triggerCrisis(game, 'teammate-down')
+    expect(boardView(game).crises).toEqual([
+      { id: 'teammate-down', name: 'Teammate down', icon: '💉' },
+      { id: 'hound-wave', name: 'Hound wave', icon: '🐕' },
+    ])
+  })
+
+  it('ending a crisis removes its banner', () => {
+    let game = triggerCrisis(gameWith('wilson'), 'hound-wave')
+    game = triggerCrisis(game, 'freezing')
+    game = endCrisis(game, 'hound-wave')
+    expect(boardView(game).crises.map((c) => c.id)).toEqual(['freezing'])
+  })
+
+  it('crisis cards carry the crisis icon; season cards do not', () => {
+    const game = triggerCrisis(gameWith('wilson'), 'teammate-down')
+    const cards = boardView(game, 6).cards
+    expect(cards.map((c) => [c.itemId, c.crisisIcon])).toEqual([
+      ['telltale-heart', '💉'],
+      ['booster-shot', '💉'],
+      ['healing-salve', '💉'],
+      ['honey-poultice', '💉'],
+      ['science-machine', null],
+      ['alchemy-engine', null],
+    ])
+  })
+
+  it('an item needed by two crises shows the latest one', () => {
+    let game = setSeason(gameWith('wilson'), 'winter')
+    game = triggerCrisis(game, 'hound-wave') // log suit
+    game = triggerCrisis(game, 'freezing') // winter hat, thermal stone, fire pit
+    expect(cardView(game, 'winter-hat').crisisIcon).toBe('🥶')
+    expect(cardView(game, 'log-suit').crisisIcon).toBe('🐕')
+  })
+
+  it('a season item that a crisis also needs is marked while the crisis lasts', () => {
+    let game = triggerCrisis(gameWith('wilson'), 'starvation')
+    expect(cardView(game, 'crock-pot').crisisIcon).toBe('🍖')
+    game = endCrisis(game, 'starvation')
+    expect(cardView(game, 'crock-pot').crisisIcon).toBeNull()
   })
 })

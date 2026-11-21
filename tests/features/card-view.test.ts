@@ -19,6 +19,7 @@ describe('M3 card view (what a card shows)', () => {
         { slotIndex: 2, name: 'Electrical Doodad', amount: 2, claimedBy: null },
       ],
       checks: null,
+      crisisIcon: null,
     })
   })
 
@@ -93,6 +94,7 @@ describe('M3 board view', () => {
       cards: [],
       hiddenCount: 0,
       cooks: [],
+      crises: [],
     })
     // the game started in autumn, so autumn's items wait in Unfinished business
     expect(view.unfinished).toHaveLength(6)

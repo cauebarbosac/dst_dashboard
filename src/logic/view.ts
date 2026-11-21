@@ -2,9 +2,10 @@
 // already worked out. The React components only display these.
 
 import { CHARACTERS } from '../data/characters'
+import { CRISES } from '../data/crises'
 import { ITEMS, type ItemId } from '../data/items'
 import { SEASON_ICONS, SEASON_NAMES, SEASON_ORDER } from '../data/seasons'
-import type { Season } from '../data/types'
+import type { Crisis, Season } from '../data/types'
 import { STATIONS } from '../data/stations'
 import {
   boardQueue,
@@ -36,6 +37,8 @@ export type CardView = {
   slots: SlotView[]
   /** Check slots: only for items needed more than once. */
   checks: { done: number; required: number } | null
+  /** Icon of the active crisis that needs this item (latest first), if any. */
+  crisisIcon: string | null
 }
 
 export type BoardView = {
@@ -48,6 +51,8 @@ export type BoardView = {
   cooks: Tag[]
   /** Items left over from earlier seasons (the minimized tab). */
   unfinished: CardView[]
+  /** Active crises for the red banners, latest first. */
+  crises: CrisisBanner[]
 }
 
 function tagOf(state: GameState, playerId: PlayerId | null | undefined) {
@@ -60,6 +65,20 @@ function tagOf(state: GameState, playerId: PlayerId | null | undefined) {
     label: character?.tag ?? '?',
     color: player.color,
   } satisfies Tag
+}
+
+/** Active crises, latest triggered first (the one on top of the board). */
+function activeCrisesLatestFirst(state: GameState): Crisis[] {
+  return [...state.activeCrises]
+    .reverse()
+    .map((id) => CRISES.find((c) => c.id === id))
+    .filter((c): c is (typeof CRISES)[number] => c !== undefined)
+}
+
+function crisisNeeding(state: GameState, itemId: ItemId): Crisis | undefined {
+  return activeCrisesLatestFirst(state).find((c) =>
+    (c.items as string[]).includes(itemId),
+  )
 }
 
 /** A player as listed in setup and the switcher: tag + character name. */
@@ -89,6 +108,7 @@ export function cardView(state: GameState, itemId: ItemId): CardView {
       claimedBy: tagOf(state, card.claims[slotIndex]),
     })),
     checks: required > 1 ? { done: card.checks, required } : null,
+    crisisIcon: crisisNeeding(state, itemId)?.icon ?? null,
   }
 }
 
@@ -101,6 +121,11 @@ export function boardView(state: GameState, size?: number): BoardView {
     hiddenCount: boardQueue(state).length - visible.length,
     cooks: cooks(state).map((p) => tagOf(state, p.id) as Tag),
     unfinished: unfinishedItems(state).map((id) => cardView(state, id)),
+    crises: activeCrisesLatestFirst(state).map(({ id, name, icon }) => ({
+      id,
+      name,
+      icon,
+    })),
   }
 }
 
@@ -176,5 +201,21 @@ export function seasonOptions(state: GameState): SeasonOption[] {
     name: SEASON_NAMES[season],
     icon: SEASON_ICONS[season],
     current: season === state.season,
+  }))
+}
+
+// ── Crisis mode (M9) ──
+
+export type CrisisBanner = { id: string; name: string; icon: string }
+
+export type CrisisOption = CrisisBanner & { active: boolean }
+
+/** The row of crisis buttons, in data order, marking the active ones. */
+export function crisisOptions(state: GameState): CrisisOption[] {
+  return CRISES.map(({ id, name, icon }) => ({
+    id,
+    name,
+    icon,
+    active: state.activeCrises.includes(id),
   }))
 }

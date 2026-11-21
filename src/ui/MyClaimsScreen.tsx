@@ -13,6 +13,7 @@ import {
   type MyClaimView,
 } from '../logic/view'
 import { CookButton, CookStrip } from './Cooking'
+import { CrisisBanners } from './Crisis'
 import { PlayerTag } from './ItemCard'
 
 type MyClaimsScreenProps = {
@@ -32,7 +33,8 @@ export function MyClaimsScreen({
   const [rows] = useState<MyClaimView[]>(() => myClaimsView(state, me).items)
   const live = myClaimsView(state, me)
   const myTag = playerTags(state).find((p) => p.playerId === me)
-  const cooks = boardView(state).cooks
+  const board = boardView(state)
+  const cooks = board.cooks
   const amCooking = cooks.some((t) => t.playerId === me)
 
   const isMine = (itemId: MyClaimView['itemId'], slotIndex: number) =>
@@ -47,6 +49,10 @@ export function MyClaimsScreen({
         {myTag && <PlayerTag tag={myTag} />}
       </header>
 
+      <CrisisBanners
+        crises={board.crises}
+        onEnd={(crisisId) => dispatch({ type: 'endCrisis', crisisId })}
+      />
       <CookStrip cooks={cooks} />
 
       <main className="claims">
