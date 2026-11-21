@@ -101,6 +101,9 @@ Small syntax crib:
 | `functools.reduce(f, xs, start)` | `xs.reduce(f, start)` | Fold a list into one value. The tests replay a list of actions this way. |
 | `match action: case Claim(...)` | `switch (action.type) { case 'claimSlot': … }` | With a **discriminated union** (`type Action = { type: 'a', … } \| { type: 'b', … }`), TS knows which fields each case has, like a union of dataclasses. |
 | `copy.deepcopy(x)` | `structuredClone(x)` | Full deep copy. A test uses it to prove actions never modify the old state. |
+| `json.dumps(x)` / `json.loads(s)` | `JSON.stringify(x)` / `JSON.parse(s)` | How the game is turned into text for saving, and back. |
+| `try: … except Exception: …` | `try { … } catch { … }` | Same idea. The storage code catches errors so a broken save or a refusing browser never crashes the app. |
+| `typing.Protocol` / ABC with one implementation | `type GameStore = { loadGame(): …; saveGame(g): void }` + `createLocalStore()` | Our storage adapter: the app only knows the shape, so M11 can plug in the cloud version. |
 | `==` | `===` (always use the triple one; `==` does surprising conversions) |
 | `async def` / `await` | `async function` / `await` — same idea |
 | `print()` | `console.log()` (shows up in the browser's DevTools console) |
@@ -132,6 +135,7 @@ Small syntax crib:
 | **`{cond && <X />}`** | "Draw X only if cond". Like `x if cond else None` inside a template. |
 | **`onClick={() => …}`** | "Run this function when tapped". Like passing a callback (`command=`) to a Tkinter button. Our buttons only `dispatch` an action; the rule itself lives in `src/logic/`. |
 | **`useState`** | One value React remembers between redraws, e.g. which demo player is tapping (`me`). Simpler than `useReducer` when there are no rules involved. |
+| **`useEffect(() => …, [x])`** | "After drawing, run this whenever `x` changed". We use it to save the game after every change, and for the 3-second timer of the two-tap confirm. If it returns a function, React calls that to clean up (like a context manager's `__exit__`). |
 
 ## 6. Browser & web-app concepts
 
@@ -172,6 +176,7 @@ Small syntax crib:
 | `src/logic/` | game rules, pure functions | your plain Python module |
 | `src/data/` | hand-written game data: items, seasons, crises, characters | a `constants.py` module |
 | `src/ui/` | React components (screen pieces), e.g. `ItemCard.tsx` | your templates / view layer |
+| `src/storage/` | saving and loading the game (the storage adapter) | a small persistence module |
 | `tests/features/`, `tests/regression/` | feature tests and bug tests (see `tests/README.md`) | `tests/` |
 | `src/index.css` | global styles | — |
 | `public/` | files copied as-is (icons) | package data files |

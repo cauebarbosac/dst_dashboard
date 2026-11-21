@@ -143,7 +143,7 @@ Cooking at the Crock Pot keeps a player busy, so others need to know about it.
 
 - ~~Do items in **Unfinished business** keep their claims, or are they cleared?~~ They **keep** their claims. If a crisis or the season lists them again, they go back to the board as they were.
 - ~~When an item comes back from the **Built list**, does it start fresh (no claims, no checks)?~~ **Yes, fresh.**
-- What happens to **N** if a player joins or leaves mid-game? When someone joins, N grows with them. Leaving is still open.
+- ~~What happens to **N** if a player joins or leaves mid-game?~~ When someone joins, N grows with them. When someone leaves, their claims are released and N shrinks; an item that now has all its checks counts as built.
 - **Nested ingredients** (Rope, Boards, Papyrus): is claiming "Rope" enough, or should it expand into its own ingredients someday?
 - ~~Which items go in each season list and each crisis list?~~ First lists agreed (see the plan, M1).
 - ~~Should a crisis item that's **already built** (e.g. Lightning Rod) still show up when the crisis is triggered?~~ **No.** If it's needed again (broken, used up), send it back from the Built list.
