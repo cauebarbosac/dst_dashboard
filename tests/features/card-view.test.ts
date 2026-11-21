@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { markBuilt } from '../../src/logic/building'
 import { claimBuilder, claimSlot } from '../../src/logic/claims'
 import { setSeason } from '../../src/logic/seasons'
-import { boardView, cardView } from '../../src/logic/view'
+import { boardView, cardView, playerTags } from '../../src/logic/view'
 import { gameWith } from './helpers'
 
 describe('M3 card view (what a card shows)', () => {
@@ -91,5 +91,14 @@ describe('M3 board view', () => {
       cards: [],
       hiddenCount: 0,
     })
+  })
+})
+
+describe('M4 player tags', () => {
+  it("lists every player's tag, color and character name, in joining order", () => {
+    expect(playerTags(gameWith('wilson', 'wx-78'))).toEqual([
+      { playerId: 'p1', label: 'WIL', color: 'red', name: 'Wilson' },
+      { playerId: 'p2', label: 'WX', color: 'blue', name: 'WX-78' },
+    ])
   })
 })

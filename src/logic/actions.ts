@@ -13,14 +13,21 @@ import {
   tapSlot,
 } from './claims'
 import { endCrisis, triggerCrisis } from './crises'
-import { addPlayer, pickCharacter, toggleCooking } from './players'
+import {
+  addPlayer,
+  pickCharacter,
+  removePlayer,
+  toggleCooking,
+} from './players'
 import { setSeason } from './seasons'
-import type { GameState, PlayerId } from './state'
+import { createGame, type GameState, type PlayerId } from './state'
 
 // A "discriminated union": each action is a small object tagged by `type`,
 // like a set of dataclasses that `match action:` can tell apart.
 export type Action =
+  | { type: 'newGame' }
   | { type: 'addPlayer'; characterId: string }
+  | { type: 'removePlayer'; playerId: PlayerId }
   | { type: 'pickCharacter'; playerId: PlayerId; characterId: string }
   | { type: 'claimSlot'; playerId: PlayerId; itemId: ItemId; slotIndex: number }
   | {
@@ -42,8 +49,12 @@ export type Action =
 
 export function applyAction(state: GameState, action: Action): GameState {
   switch (action.type) {
+    case 'newGame':
+      return createGame()
     case 'addPlayer':
       return addPlayer(state, action.characterId)
+    case 'removePlayer':
+      return removePlayer(state, action.playerId)
     case 'pickCharacter':
       return pickCharacter(state, action.playerId, action.characterId)
     case 'claimSlot':

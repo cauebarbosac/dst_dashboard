@@ -52,6 +52,9 @@ describe('M2 actions (the only way state changes)', () => {
       { type: 'triggerCrisis', crisisId: 'freezing' },
       { type: 'endCrisis', crisisId: 'freezing' },
       { type: 'toggleCooking', playerId: 'p1' },
+      { type: 'addPlayer', characterId: 'wendy' },
+      { type: 'removePlayer', playerId: 'p2' },
+      { type: 'newGame' },
     ]
     for (const action of all) {
       const next = applyAction(game, action)
