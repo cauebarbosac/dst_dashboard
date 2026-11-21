@@ -7,6 +7,7 @@ import { browserStorage, createLocalStore } from './storage/store'
 import { BoardScreen } from './ui/BoardScreen'
 import { BuiltScreen } from './ui/BuiltScreen'
 import { MyClaimsScreen } from './ui/MyClaimsScreen'
+import { SeasonScreen } from './ui/SeasonScreen'
 import { SetupScreen } from './ui/SetupScreen'
 
 // Where the game is saved. Phase 1: this phone. M11 swaps this one line
@@ -24,9 +25,9 @@ export default function App() {
   )
   // useState: single values React remembers between redraws.
   const [rememberedMe, setMe] = useState<PlayerId | null>(() => store.loadMe())
-  const [screen, setScreen] = useState<'setup' | 'board' | 'claims' | 'built'>(
-    () => (state.players.length === 0 ? 'setup' : 'board'),
-  )
+  const [screen, setScreen] = useState<
+    'setup' | 'board' | 'claims' | 'built' | 'season'
+  >(() => (state.players.length === 0 ? 'setup' : 'board'))
   const me = resolveMe(state, rememberedMe)
 
   // useEffect: after every change, save. ([state] = "when state changes".)
@@ -41,6 +42,19 @@ export default function App() {
         onRemove={(playerId) => dispatch({ type: 'removePlayer', playerId })}
         onNewGame={() => dispatch({ type: 'newGame' })}
         onDone={() => setScreen('board')}
+      />
+    )
+  }
+
+  if (screen === 'season') {
+    return (
+      <SeasonScreen
+        state={state}
+        onPick={(season) => {
+          dispatch({ type: 'setSeason', season })
+          setScreen('board')
+        }}
+        onBack={() => setScreen('board')}
       />
     )
   }
@@ -74,6 +88,7 @@ export default function App() {
       onOpenSetup={() => setScreen('setup')}
       onOpenClaims={() => setScreen('claims')}
       onOpenBuilt={() => setScreen('built')}
+      onOpenSeason={() => setScreen('season')}
       dispatch={dispatch}
     />
   )

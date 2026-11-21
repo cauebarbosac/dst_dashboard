@@ -86,13 +86,16 @@ describe('M3 board view', () => {
     let game = setSeason(gameWith('wilson'), 'spring')
     for (const id of ['umbrella', 'rain-coat', 'lightning-rod'] as const)
       game = markBuilt(game, id)
-    expect(boardView(game)).toEqual({
+    const view = boardView(game)
+    expect(view).toMatchObject({
       seasonName: 'Spring',
       seasonIcon: '🌧️',
       cards: [],
       hiddenCount: 0,
       cooks: [],
     })
+    // the game started in autumn, so autumn's items wait in Unfinished business
+    expect(view.unfinished).toHaveLength(6)
   })
 })
 

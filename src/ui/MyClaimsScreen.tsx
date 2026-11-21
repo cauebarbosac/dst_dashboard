@@ -6,11 +6,13 @@ import { useState, type ReactNode } from 'react'
 import type { Action } from '../logic/actions'
 import type { GameState, PlayerId } from '../logic/state'
 import {
+  boardView,
   cardView,
   myClaimsView,
   playerTags,
   type MyClaimView,
 } from '../logic/view'
+import { CookButton, CookStrip } from './Cooking'
 import { PlayerTag } from './ItemCard'
 
 type MyClaimsScreenProps = {
@@ -30,6 +32,8 @@ export function MyClaimsScreen({
   const [rows] = useState<MyClaimView[]>(() => myClaimsView(state, me).items)
   const live = myClaimsView(state, me)
   const myTag = playerTags(state).find((p) => p.playerId === me)
+  const cooks = boardView(state).cooks
+  const amCooking = cooks.some((t) => t.playerId === me)
 
   const isMine = (itemId: MyClaimView['itemId'], slotIndex: number) =>
     cardView(state, itemId).slots[slotIndex]?.claimedBy?.playerId === me
@@ -42,6 +46,8 @@ export function MyClaimsScreen({
         <h1 className="season-label">📋 My claims</h1>
         {myTag && <PlayerTag tag={myTag} />}
       </header>
+
+      <CookStrip cooks={cooks} />
 
       <main className="claims">
         <p className="claims-summary">
@@ -100,10 +106,18 @@ export function MyClaimsScreen({
         ))}
       </main>
 
+      {/* Same dock as the board, so the thumb finds the same spots:
+          left = switch screen (here: back to the board), right = cooking. */}
       <footer className="dock">
-        <button type="button" className="primary-button" onClick={onBack}>
-          ← Back to the board
-        </button>
+        <div className="actionbar">
+          <button type="button" className="claims-button" onClick={onBack}>
+            ← Board
+          </button>
+          <CookButton
+            amCooking={amCooking}
+            onToggle={() => dispatch({ type: 'toggleCooking', playerId: me })}
+          />
+        </div>
       </footer>
     </div>
   )

@@ -326,32 +326,6 @@ button:active {
   color: var(--bg);
 }
 
-.seasonbar {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-}
-
-.season-button {
-  min-height: 64px;
-  border-radius: 12px;
-  border: 2px solid var(--panel-edge);
-  background: var(--panel);
-  color: var(--text);
-  font: inherit;
-  font-size: 0.85rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-}
-
-.season-button[aria-pressed='true'] {
-  border-color: var(--accent);
-  background: var(--claimed);
-}
-
 /* ── Players setup (M4) ── */
 .setup {
   flex: 1;
@@ -676,4 +650,84 @@ button:active {
   font-size: 1.1rem;
   font-weight: 700;
   padding: 0 10px;
+}
+
+/* ── Season control and Unfinished business (M8) ── */
+.season-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--touch);
+  padding: 4px 12px 4px 4px;
+  border-radius: 12px;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.season-caret {
+  font-size: 1rem;
+  color: var(--muted);
+}
+
+.season-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.season-option {
+  min-height: 112px;
+  border-radius: 16px;
+  border: 2px solid var(--panel-edge);
+  background: var(--panel);
+  font-size: 1.25rem;
+  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.season-option[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--claimed);
+}
+
+.season-option-icon {
+  font-size: 2rem;
+}
+
+.season-now {
+  font-size: 0.8rem;
+  color: var(--accent);
+}
+
+.unfinished {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  margin-top: 8px;
+}
+
+.unfinished-toggle {
+  min-height: var(--touch);
+  border-radius: 12px;
+  border: 2px dashed var(--panel-edge);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.unfinished-toggle .claims-count {
+  background: var(--panel-edge);
+  color: var(--text);
+}
+
+.unfinished-toggle .season-caret {
+  margin-left: auto;
 }

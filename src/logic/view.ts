@@ -3,9 +3,17 @@
 
 import { CHARACTERS } from '../data/characters'
 import { ITEMS, type ItemId } from '../data/items'
-import { SEASON_ICONS, SEASON_NAMES } from '../data/seasons'
+import { SEASON_ICONS, SEASON_NAMES, SEASON_ORDER } from '../data/seasons'
+import type { Season } from '../data/types'
 import { STATIONS } from '../data/stations'
-import { boardQueue, builtItems, cooks, myClaims, visibleBoard } from './board'
+import {
+  boardQueue,
+  builtItems,
+  cooks,
+  myClaims,
+  unfinishedItems,
+  visibleBoard,
+} from './board'
 import { requiredChecks } from './building'
 import { cardOf, findPlayer, type GameState, type PlayerId } from './state'
 
@@ -38,6 +46,8 @@ export type BoardView = {
   hiddenCount: number
   /** Who's cooking right now (shown to everyone). */
   cooks: Tag[]
+  /** Items left over from earlier seasons (the minimized tab). */
+  unfinished: CardView[]
 }
 
 function tagOf(state: GameState, playerId: PlayerId | null | undefined) {
@@ -90,6 +100,7 @@ export function boardView(state: GameState, size?: number): BoardView {
     cards: visible.map((id) => cardView(state, id)),
     hiddenCount: boardQueue(state).length - visible.length,
     cooks: cooks(state).map((p) => tagOf(state, p.id) as Tag),
+    unfinished: unfinishedItems(state).map((id) => cardView(state, id)),
   }
 }
 
@@ -147,5 +158,23 @@ export function builtListView(state: GameState): BuiltItemView[] {
   return builtItems(state).map((itemId) => ({
     itemId,
     name: ITEMS[itemId].name,
+  }))
+}
+
+// ── Season picker (M8) ──
+
+export type SeasonOption = {
+  season: Season
+  name: string
+  icon: string
+  current: boolean
+}
+
+export function seasonOptions(state: GameState): SeasonOption[] {
+  return SEASON_ORDER.map((season) => ({
+    season,
+    name: SEASON_NAMES[season],
+    icon: SEASON_ICONS[season],
+    current: season === state.season,
   }))
 }
