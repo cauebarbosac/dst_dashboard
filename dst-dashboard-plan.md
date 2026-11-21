@@ -52,32 +52,40 @@ The most important rule is that **all game rules live in plain functions with no
 
 **Session state** (changes during play):
 
-- `players`: id, characterId, color, **activity**: `none` | `cooking` (only `cooking` for now; more activities may come later)
+*As built in M2 (`src/logic/state.ts`):*
+
+- `players`: id (`p1`, `p2`…), characterId, color (handed out automatically, first free one), **activity**: `none` | `cooking` (only `cooking` for now; more activities may come later)
 - `season`
+- `seasonsSeen`: every season played so far, in order
 - `activeCrises`: ordered list, latest last
-- `cards`: for each item instance on the board:
-  - builderPlayerId
+- `cards`: **one card per item** (an item never shows twice), created on first touch. A missing card means "fresh":
+  - builder (player id or none)
   - slot claims `{ slotIndex → playerId }`
   - checks done (for N-quantity items)
-  - status: `board` | `built` | `unfinished`
+  - built: yes/no
+- **Unfinished business is derived, not stored:** items from earlier seasons in `seasonsSeen` that aren't built and aren't on the board now. So they keep their claims, and if a crisis or the season lists them again they go straight back to the board.
 
 ### Actions (the only ways state can change)
 
-- `pickCharacter`
-- `claimSlot` / `releaseSlot`
-- `claimBuilder` / `releaseBuilder`
-- `markBuilt` (one check; finishes the card when all checks are done)
-- `restoreFromBuilt`
-- `setSeason` (moves unfinished items to the Unfinished business tab)
-- `triggerCrisis` / `endCrisis`
+All in `src/logic/`, sent through `applyAction(state, action)` (`actions.ts`). An action that doesn't apply (taken slot, unknown player, already built…) returns the state unchanged.
+
+- `addPlayer` (with automatic color) / `pickCharacter`
+- `claimSlot` / `releaseSlot` (first claim wins; only your own claim can be released)
+- `claimBuilder` / `releaseBuilder` (one builder per item)
+- `markBuilt` (one check; finishes the card when all checks are done, then clears its claims)
+- `restoreFromBuilt` (the card comes back fresh)
+- `setSeason` (unfinished items of earlier seasons show up in Unfinished business)
+- `triggerCrisis` / `endCrisis` (re-triggering an active crisis moves it back to the top)
 - `toggleCooking` (switches that player's activity between `none` and `cooking`)
+
+Derived views the UI reads (`board.ts`): `visibleBoard`, `boardQueue`, `unfinishedItems`, `builtItems`, `topCrisis`, `cooks`, `myClaims`.
 
 ### Board rule ("what's on the board right now")
 
 1. Items from active crises, **latest crisis first**.
 2. Then the current season's list, in order.
-3. Skip items that are built or unfinished, and list each item only once.
-4. Show the **top K cards** (K ≈ 3–4, to be tuned); the rest is hidden.
+3. Skip items that are built, and list each item only once (at its highest position).
+4. Show the **top K cards** (`BOARD_SIZE`, 3 for now, to be tuned on the phone); the rest is hidden.
 
 ---
 
@@ -89,7 +97,8 @@ The most important rule is that **all game rules live in plain functions with no
 |---|---|---|
 | M0 | ✅ done 2026-11-20 | Live at https://cauebarbosac.github.io/dst_dashboard/, opens on the phone |
 | M1 | ✅ done 2026-11-20 | Lists reviewed and approved. Data in `src/data/`, 25 tests green. Branch `m1-game-data` pushed; merge via PR. Windows note: run `npm test` from `C:\…`, not `c:\…` (BUG-001). |
-| M2 | ⏭ next | Board logic (incl. `toggleCooking`). Start a branch `m2-board-logic` from `main` after M1 is merged. |
+| M2 | ✅ done 2026-11-21 | All rules in `src/logic/`, 100 tests green (incl. M1's 24). Defaults for the open questions approved (section 5). Branch `m2-board-logic` pushed; merge via PR. |
+| M3 | ⏭ next | Read-only board on the phone. |
 
 **Next session starts here:** read this table, then the milestone's section below.
 
@@ -216,15 +225,16 @@ Each milestone is one git branch, merged when its **Done when** list passes, on 
 ## 5. Open questions (to settle along the way)
 
 From the idea file:
-- Do items in Unfinished business keep their claims?
-- Does an item restored from Built start fresh?
-- What happens to N when players join or leave mid-game?
+- ~~Do items in Unfinished business keep their claims?~~ **Yes** (M2): they keep claims and checks.
+- ~~Does an item restored from Built start fresh?~~ **Yes** (M2): no claims, no builder, no checks.
+- What happens to N when players join or leave mid-game? **Join:** N follows the live player count (M2). **Leave:** still open; there's no "remove player" yet (M4/M11).
 - How should crafted ingredients like Rope or Boards work?
-- Should already-built crisis items still show up?
+- ~~Should already-built crisis items still show up?~~ **No** (M2): built items are skipped everywhere. Restore one from Built if it's needed again.
 - ~~What goes in each season and crisis list?~~ First lists agreed in M1 (2026-11-20).
 
 New:
-- **K:** how many cards are visible at once, 3 or 4?
+- **K:** how many cards are visible at once, 3 or 4? Set to **3** for now (`BOARD_SIZE`); decide on the phone at M3.
+- **Undoing a check:** decided for now (2026-11-21): a mistaken long press is fixed by restoring the item from the Built list (it comes back fresh). Revisit "undo last check" only if it hurts in play.
 - **Long-press time:** 2 s, or shorter (1.5 s)?
 - **Hosted service:** Firebase or Supabase. Decide at M11 after checking current free-tier terms.
 - **Rooms:** should a room live for the whole world/playthrough and be reused across play sessions?

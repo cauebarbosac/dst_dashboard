@@ -96,6 +96,11 @@ Small syntax crib:
 | `Literal[*MY_DICT.keys()]` (not real Python, but that's the idea) | `keyof typeof ITEMS` | "The type made of this object's keys". `ItemId` in `src/data/items.ts` is built this way, so a typo in an item id fails the type check. |
 | `x: Item = {...}` (check the value against a shape) | `{...} satisfies Item` | Checks the value matches the shape but keeps its exact keys and values for the type checker. |
 | `from m import Item` used only for hints (`if TYPE_CHECKING:`) | `import type { Item } from './m'` | Import used only by the type checker. It vanishes from the built app. |
+| `{**d, "key": v}` | `{ ...d, key: v }` (spread) | Copy with changes. How `src/logic/` returns a *new* state instead of editing the old one. `[...xs, x]` is `[*xs, x]`. |
+| `x if x is not None else default` | `x ?? default` | "Use the default when x is null/undefined". `cardOf` uses it for fresh cards. |
+| `functools.reduce(f, xs, start)` | `xs.reduce(f, start)` | Fold a list into one value. The tests replay a list of actions this way. |
+| `match action: case Claim(...)` | `switch (action.type) { case 'claimSlot': … }` | With a **discriminated union** (`type Action = { type: 'a', … } \| { type: 'b', … }`), TS knows which fields each case has, like a union of dataclasses. |
+| `copy.deepcopy(x)` | `structuredClone(x)` | Full deep copy. A test uses it to prove actions never modify the old state. |
 | `==` | `===` (always use the triple one; `==` does surprising conversions) |
 | `async def` / `await` | `async function` / `await` — same idea |
 | `print()` | `console.log()` (shows up in the browser's DevTools console) |
