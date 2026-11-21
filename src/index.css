@@ -79,11 +79,22 @@ button:active {
   font-size: 1.75rem;
 }
 
-/* TEMPORARY "who am I" switch (until M4). */
+.icon-button {
+  min-width: var(--touch);
+  min-height: var(--touch);
+  border-radius: 12px;
+  border: 2px solid var(--panel-edge);
+  background: var(--panel);
+  font-size: 1.5rem;
+}
+
+/* Player switcher: single-phone phase only (goes away in M11). */
 .whoami {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 4px;
+  padding: 0 16px 4px;
 }
 
 .whoami-label {
@@ -292,4 +303,131 @@ button:active {
 .season-button[aria-pressed='true'] {
   border-color: var(--accent);
   background: var(--claimed);
+}
+
+/* ── Players setup (M4) ── */
+.setup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 8px 16px 16px;
+}
+
+.setup-heading {
+  font-size: 1rem;
+  color: var(--muted);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.setup-hint {
+  color: var(--muted);
+}
+
+.player-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.player-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 8px 8px 12px;
+  background: var(--panel);
+  border: 2px solid var(--panel-edge);
+  border-radius: 12px;
+}
+
+.player-name {
+  flex: 1;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.remove-button {
+  min-width: var(--touch);
+  min-height: var(--touch);
+  border-radius: 12px;
+  border: 2px solid var(--panel-edge);
+  font-size: 1.1rem;
+}
+
+.remove-button.armed,
+.secondary-button.armed {
+  border-color: var(--ring-red);
+  color: var(--ring-red);
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 0 10px;
+}
+
+.character-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.character-button {
+  min-height: 64px;
+  border-radius: 12px;
+  border: 2px solid var(--panel-edge);
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 4px;
+}
+
+.character-tag {
+  font-weight: 700;
+  color: var(--accent);
+  font-size: 0.85rem;
+}
+
+.character-name {
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+
+/* Bottom bar with the main action on the right (thumb side). */
+.bottombar {
+  position: sticky;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 8px;
+  padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
+  background: var(--bg);
+  border-top: 1px solid var(--panel-edge);
+}
+
+.primary-button,
+.secondary-button {
+  min-height: 64px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.primary-button {
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 1.1rem;
+}
+
+.primary-button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.secondary-button {
+  border: 2px solid var(--panel-edge);
+  background: var(--panel);
 }
