@@ -19,6 +19,9 @@
   --ring-purple: #a87ae0;
   --ring-orange: #e88a3a;
 
+  --crisis: #c8372d;
+  --crisis-bg: #3a1714;
+
   --touch: 56px; /* minimum touch target */
   --gap: 12px;
 
@@ -730,4 +733,79 @@ button:active {
 
 .unfinished-toggle .season-caret {
   margin-left: auto;
+}
+
+/* ── Crisis mode (M9) ── */
+.crisis-banners {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 16px 6px;
+}
+
+.crisis-banner {
+  min-height: var(--touch);
+  border-radius: 12px;
+  background: var(--crisis-bg);
+  border: 2px solid var(--crisis);
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.crisis-banner.top {
+  background: var(--crisis);
+  font-size: 1.2rem;
+  min-height: 64px;
+}
+
+.crisis-banner-action {
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+.crisisbar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.crisis-button {
+  min-height: var(--touch);
+  border-radius: 12px;
+  border: 2px solid var(--crisis-bg);
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 2px;
+  line-height: 1.1;
+}
+
+.crisis-button-icon {
+  font-size: 1.3rem;
+}
+
+.crisis-button-name {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.crisis-button[aria-pressed='true'] {
+  background: var(--crisis);
+  border-color: var(--crisis);
+}
+
+.crisis-button[aria-pressed='true'] .crisis-button-name {
+  color: var(--text);
+}
+
+.card.crisis {
+  border-color: var(--crisis);
 }

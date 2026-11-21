@@ -34,7 +34,7 @@ export function ItemCard({
 }: ItemCardProps) {
   const press = usePressOrHold(onTapBuilder, onBuild)
   return (
-    <article className="card">
+    <article className={card.crisisIcon ? 'card crisis' : 'card'}>
       {/* The item itself = the builder slot (tap) and "built" (hold). */}
       <button
         type="button"
@@ -44,7 +44,12 @@ export function ItemCard({
         aria-label={`${card.name}: tap to be the builder, hold to mark built`}
       >
         <span className="card-title">
-          <span className="card-name">{card.name}</span>
+          <span className="card-name">
+            {card.crisisIcon && (
+              <span aria-label="crisis item">{card.crisisIcon} </span>
+            )}
+            {card.name}
+          </span>
           <span className="station">
             {card.station ? `⚙ ${card.station}` : '✋ By hand'}
             <span className="hold-hint"> · hold to build</span>

@@ -7,11 +7,13 @@ import type { GameState, PlayerId } from '../logic/state'
 import {
   boardView,
   builtListView,
+  crisisOptions,
   myClaimsView,
   playerTags,
   type CardView,
 } from '../logic/view'
 import { CookButton, CookStrip } from './Cooking'
+import { CrisisBanners, CrisisBar } from './Crisis'
 import { ItemCard, PlayerTag } from './ItemCard'
 
 type BoardScreenProps = {
@@ -97,6 +99,12 @@ export function BoardScreen({
         </div>
       </header>
 
+      {/* Red banners, latest crisis on top. One tap ends that crisis. */}
+      <CrisisBanners
+        crises={board.crises}
+        onEnd={(crisisId) => dispatch({ type: 'endCrisis', crisisId })}
+      />
+
       {/* Single-phone phase only: who is holding the phone right now.
           Goes away in M11, when each phone is one player. */}
       {players.length > 1 && (
@@ -150,6 +158,13 @@ export function BoardScreen({
 
       {/* Bottom dock = thumb reach: the main actions. */}
       <footer className="dock">
+        {/* One tap starts a crisis for everyone. */}
+        <CrisisBar
+          options={crisisOptions(state)}
+          onTrigger={(crisisId) =>
+            dispatch({ type: 'triggerCrisis', crisisId })
+          }
+        />
         <div className="actionbar">
           <button
             type="button"
