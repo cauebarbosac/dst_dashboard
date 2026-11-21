@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { markBuilt } from '../../src/logic/building'
 import { claimBuilder, claimSlot } from '../../src/logic/claims'
+import { removePlayer, toggleCooking } from '../../src/logic/players'
 import { setSeason } from '../../src/logic/seasons'
 import { boardView, cardView, playerTags } from '../../src/logic/view'
 import { gameWith } from './helpers'
@@ -90,6 +91,7 @@ describe('M3 board view', () => {
       seasonIcon: '🌧️',
       cards: [],
       hiddenCount: 0,
+      cooks: [],
     })
   })
 })
@@ -100,5 +102,33 @@ describe('M4 player tags', () => {
       { playerId: 'p1', label: 'WIL', color: 'red', name: 'Wilson' },
       { playerId: 'p2', label: 'WX', color: 'blue', name: 'WX-78' },
     ])
+  })
+})
+
+describe('M5 who is cooking, on the board', () => {
+  it('nobody cooking: no cooks shown', () => {
+    expect(boardView(gameWith('wilson', 'willow')).cooks).toEqual([])
+  })
+
+  it("shows each cook's tag and color ring", () => {
+    let game = gameWith('wilson', 'willow', 'warly')
+    game = toggleCooking(game, 'p3')
+    game = toggleCooking(game, 'p1')
+    expect(boardView(game).cooks).toEqual([
+      { playerId: 'p1', label: 'WIL', color: 'red' },
+      { playerId: 'p3', label: 'WAR', color: 'green' },
+    ])
+  })
+
+  it('a cook who is done disappears from the list', () => {
+    let game = toggleCooking(gameWith('wilson'), 'p1')
+    game = toggleCooking(game, 'p1')
+    expect(boardView(game).cooks).toEqual([])
+  })
+
+  it('a cook who is removed from the game disappears too', () => {
+    let game = toggleCooking(gameWith('wilson', 'willow'), 'p2')
+    game = removePlayer(game, 'p2')
+    expect(boardView(game).cooks).toEqual([])
   })
 })

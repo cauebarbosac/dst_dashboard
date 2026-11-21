@@ -100,7 +100,8 @@ Derived views the UI reads (`board.ts`): `visibleBoard`, `boardQueue`, `unfinish
 | M2 | ✅ done 2026-11-21 | All rules in `src/logic/`, 100 tests green (incl. M1's 24). Defaults for the open questions approved (section 5). Branch `m2-board-logic` pushed; merge via PR. |
 | M3 | ✅ merged 2026-11-21 (PR #4) | Board screen + claiming by tap (pulled forward from M5). Phone checklist (M3 section) not reported yet; the 3-vs-4 cards question is still open. |
 | M4 | ✅ done 2026-11-21 | Players setup, player switcher, saving on the phone (`src/storage/`), remove / new game by tap-then-hold (1.5 s). 154 tests green. Phone-checked by the user. Branch `m4-players-and-saving` pushed; merge via PR. |
-| M5 | ⏭ next | Claiming is already done (M3); left: the cooking button. Start a branch from `main` after M4 is merged. |
+| M5 | ✅ done 2026-11-21 | Cooking button + "who's cooking" strip (claiming was done in M3), 158 tests green. Phone-checked by the user. Branch `m5-cooking` pushed; merge via PR. Still open: 2, 3 or 4 cards. |
+| M6 | ⏭ next | My claims. |
 
 **Next session starts here:** read this table, then the milestone's section below.
 
@@ -180,9 +181,18 @@ Each milestone is one git branch, merged when its **Done when** list passes, on 
   - [x] The hold (1.5 s) feels right: not too short, not annoying.
 - **Done when:** you set up 2–3 players, close the app, reopen it, and everything is still there.
 
-### M5: Claiming
+### M5: Claiming and cooking
 - *Already done early in M3:* tap a slot to claim it or release your own claim, tap the item for the builder role. M5 re-checks them with the real players from M4.
 - **Cooking button**, always visible: one tap toggles "I'm cooking". The board shows who's cooking (name tag + cooking mark).
+- As built:
+  - `boardView` now lists the cooks (`cooks`, tested); the rule itself (`toggleCooking`) is from M2.
+  - **Cooking button** in a bottom **dock** (thumb reach), above the season bar: "🍲 I'm cooking", and while on, "🍲 Cooking… tap when done" (highlighted). It acts for the current "You:" player. The dock has room for M6's My claims button next to it.
+  - **"Who's cooking" strip** under the header, only while someone cooks: 🍲 + their tags + "is / are cooking". Shows who, not what.
+  - Cooking is saved like everything else (survives a reload).
+- Phone checklist:
+  - [x] The cooking button is easy to hit, and its on/off state is obvious.
+  - [x] The strip is noticeable without being in the way.
+  - [ ] With the bigger dock, is the third card still visible enough? (Ties to the open 3-vs-4 cards question; it may become 2.)
 - **Done when:** claims and releases work, an item can be split across players, and cooking can be turned on and off.
 
 ### M6: My claims
