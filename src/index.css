@@ -615,3 +615,65 @@ button:active {
 .dock > .primary-button {
   width: 100%;
 }
+
+/* ── Hold to build / send back (M7) ── */
+/* Any element that reacts to a hold gets a bar that fills while held. */
+.hold-fill {
+  position: relative;
+  overflow: hidden;
+}
+
+.hold-fill::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--fill-color, var(--ring-green));
+  opacity: 0.3;
+  transform: scaleX(0);
+  transform-origin: left;
+  pointer-events: none;
+}
+
+.hold-fill.holding::before {
+  transform: scaleX(1);
+  transition: transform var(--hold-ms) linear;
+}
+
+.hold-fill.holding:active {
+  transform: none; /* keep the bar steady while held */
+}
+
+.hold-fill > * {
+  position: relative; /* content above the bar */
+}
+
+.build-fill {
+  --fill-color: var(--ring-green);
+}
+
+.restore-fill {
+  --fill-color: var(--accent);
+}
+
+/* Cards: no text selection or phone long-press menu (mobile pitfall). */
+.card,
+.claims {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.hold-hint {
+  opacity: 0.7;
+}
+
+.topbar-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.built-button {
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 0 10px;
+}

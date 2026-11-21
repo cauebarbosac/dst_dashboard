@@ -4,7 +4,12 @@
 import { SEASON_ICONS, SEASON_NAMES, SEASON_ORDER } from '../data/seasons'
 import type { Action } from '../logic/actions'
 import type { GameState, PlayerId } from '../logic/state'
-import { boardView, myClaimsView, playerTags } from '../logic/view'
+import {
+  boardView,
+  builtListView,
+  myClaimsView,
+  playerTags,
+} from '../logic/view'
 import { ItemCard, PlayerTag } from './ItemCard'
 
 type BoardScreenProps = {
@@ -13,6 +18,7 @@ type BoardScreenProps = {
   onSwitchPlayer: (playerId: PlayerId) => void
   onOpenSetup: () => void
   onOpenClaims: () => void
+  onOpenBuilt: () => void
   dispatch: (action: Action) => void
 }
 
@@ -22,12 +28,14 @@ export function BoardScreen({
   onSwitchPlayer,
   onOpenSetup,
   onOpenClaims,
+  onOpenBuilt,
   dispatch,
 }: BoardScreenProps) {
   const board = boardView(state)
   const players = playerTags(state)
   const amCooking = board.cooks.some((t) => t.playerId === me)
   const promises = myClaimsView(state, me).count
+  const builtCount = builtListView(state).length
 
   return (
     <div className="app">
@@ -35,14 +43,24 @@ export function BoardScreen({
         <h1 className="season-label">
           <span aria-hidden="true">{board.seasonIcon}</span> {board.seasonName}
         </h1>
-        <button
-          type="button"
-          className="icon-button"
-          aria-label="Players"
-          onClick={onOpenSetup}
-        >
-          👥
-        </button>
+        <div className="topbar-buttons">
+          <button
+            type="button"
+            className="icon-button built-button"
+            aria-label={`Built list: ${builtCount}`}
+            onClick={onOpenBuilt}
+          >
+            ✓ {builtCount}
+          </button>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="Players"
+            onClick={onOpenSetup}
+          >
+            👥
+          </button>
+        </div>
       </header>
 
       {/* Single-phone phase only: who is holding the phone right now.
@@ -88,6 +106,7 @@ export function BoardScreen({
                 itemId: card.itemId,
               })
             }
+            onBuild={() => dispatch({ type: 'markBuilt', itemId: card.itemId })}
             onTapSlot={(slotIndex) =>
               dispatch({
                 type: 'tapSlot',

@@ -1,9 +1,11 @@
-// One big item card. It draws a CardView and reports taps; what a tap
-// means (claim / release / nothing) is decided in src/logic/claims.ts.
-// The long press to build arrives in M7.
+// One big item card. It draws a CardView and reports taps and holds; what
+// they mean is decided in src/logic/. On the item itself: TAP = builder
+// role, HOLD = built (one check for items needed N times).
 
 import type { CSSProperties } from 'react'
 import type { CardView, Tag } from '../logic/view'
+import { HOLD_MS } from './holdToConfirm'
+import { usePressOrHold } from './usePressOrHold'
 
 /** A player's name tag inside their color ring. */
 export function PlayerTag({ tag }: { tag: Pick<Tag, 'label' | 'color'> }) {
@@ -21,22 +23,31 @@ type ItemCardProps = {
   card: CardView
   onTapBuilder: () => void
   onTapSlot: (slotIndex: number) => void
+  onBuild: () => void
 }
 
-export function ItemCard({ card, onTapBuilder, onTapSlot }: ItemCardProps) {
+export function ItemCard({
+  card,
+  onTapBuilder,
+  onTapSlot,
+  onBuild,
+}: ItemCardProps) {
+  const press = usePressOrHold(onTapBuilder, onBuild)
   return (
     <article className="card">
-      {/* The item itself = the builder slot. */}
+      {/* The item itself = the builder slot (tap) and "built" (hold). */}
       <button
         type="button"
-        className="card-head"
-        onClick={onTapBuilder}
-        aria-label={`${card.name}: ${card.builder ? `built by ${card.builder.label}` : 'tap to be the builder'}`}
+        className={`card-head hold-fill build-fill ${press.holding ? 'holding' : ''}`}
+        style={{ '--hold-ms': `${HOLD_MS}ms` } as CSSProperties}
+        {...press.handlers}
+        aria-label={`${card.name}: tap to be the builder, hold to mark built`}
       >
         <span className="card-title">
           <span className="card-name">{card.name}</span>
           <span className="station">
             {card.station ? `⚙ ${card.station}` : '✋ By hand'}
+            <span className="hold-hint"> · hold to build</span>
           </span>
         </span>
         {card.builder ? (
