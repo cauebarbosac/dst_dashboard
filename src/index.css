@@ -510,3 +510,108 @@ button:active {
   border: 2px solid var(--panel-edge);
   background: var(--panel);
 }
+
+/* ── My claims (M6) ── */
+.claims-button {
+  min-height: 64px;
+  border-radius: 12px;
+  border: 2px solid var(--accent);
+  background: var(--panel);
+  font-size: 1.1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.claims-count {
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--bg);
+  display: inline-grid;
+  place-items: center;
+}
+
+.claims {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  padding: 8px 16px 16px;
+}
+
+.claims-summary {
+  font-size: 1.1rem;
+  color: var(--muted);
+}
+
+.claim-card {
+  background: var(--panel);
+  border: 2px solid var(--panel-edge);
+  border-radius: 16px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.claim-item {
+  font-size: 1.25rem;
+}
+
+.claim-item .station {
+  font-weight: 400;
+}
+
+.claim-row {
+  min-height: var(--touch);
+  width: 100%;
+  border-radius: 12px;
+  border: 2px solid var(--panel-edge);
+  background: var(--bg);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+}
+
+.claim-main {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.claim-what {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.claim-action {
+  color: var(--muted);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.claim-row.released {
+  border-style: dashed;
+}
+
+.claim-row.released .claim-main {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
+.claim-row.released .claim-action {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.dock > .primary-button {
+  width: 100%;
+}

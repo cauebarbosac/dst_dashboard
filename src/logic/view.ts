@@ -5,7 +5,7 @@ import { CHARACTERS } from '../data/characters'
 import { ITEMS, type ItemId } from '../data/items'
 import { SEASON_ICONS, SEASON_NAMES } from '../data/seasons'
 import { STATIONS } from '../data/stations'
-import { boardQueue, cooks, visibleBoard } from './board'
+import { boardQueue, cooks, myClaims, visibleBoard } from './board'
 import { requiredChecks } from './building'
 import { cardOf, findPlayer, type GameState, type PlayerId } from './state'
 
@@ -91,4 +91,49 @@ export function boardView(state: GameState, size?: number): BoardView {
     hiddenCount: boardQueue(state).length - visible.length,
     cooks: cooks(state).map((p) => tagOf(state, p.id) as Tag),
   }
+}
+
+// ── My claims (M6) ──
+
+export type MyClaimView = {
+  itemId: ItemId
+  name: string
+  /** Where it's crafted, e.g. "Alchemy Engine". Null when made by hand. */
+  station: string | null
+  /** True if I'm the builder. */
+  builder: boolean
+  /** The ingredients I promised to bring for it. */
+  slots: { slotIndex: number; name: string; amount: number }[]
+}
+
+export type MyClaimsView = {
+  items: MyClaimView[]
+  /** Every promise: one per ingredient slot + one per builder role. */
+  count: number
+}
+
+/** "What did I promise?": board items first, then the rest. */
+export function myClaimsView(
+  state: GameState,
+  playerId: PlayerId,
+): MyClaimsView {
+  const items = myClaims(state, playerId).map((claim) => {
+    const item = ITEMS[claim.itemId]
+    return {
+      itemId: claim.itemId,
+      name: item.name,
+      station: item.station === 'hand' ? null : STATIONS[item.station].name,
+      builder: claim.builder,
+      slots: claim.slots.map(({ slotIndex, ingredient }) => ({
+        slotIndex,
+        name: ingredient.name,
+        amount: ingredient.amount,
+      })),
+    }
+  })
+  const count = items.reduce(
+    (n, i) => n + i.slots.length + (i.builder ? 1 : 0),
+    0,
+  )
+  return { items, count }
 }

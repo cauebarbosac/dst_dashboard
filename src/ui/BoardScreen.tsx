@@ -4,7 +4,7 @@
 import { SEASON_ICONS, SEASON_NAMES, SEASON_ORDER } from '../data/seasons'
 import type { Action } from '../logic/actions'
 import type { GameState, PlayerId } from '../logic/state'
-import { boardView, playerTags } from '../logic/view'
+import { boardView, myClaimsView, playerTags } from '../logic/view'
 import { ItemCard, PlayerTag } from './ItemCard'
 
 type BoardScreenProps = {
@@ -12,6 +12,7 @@ type BoardScreenProps = {
   me: PlayerId
   onSwitchPlayer: (playerId: PlayerId) => void
   onOpenSetup: () => void
+  onOpenClaims: () => void
   dispatch: (action: Action) => void
 }
 
@@ -20,11 +21,13 @@ export function BoardScreen({
   me,
   onSwitchPlayer,
   onOpenSetup,
+  onOpenClaims,
   dispatch,
 }: BoardScreenProps) {
   const board = boardView(state)
   const players = playerTags(state)
   const amCooking = board.cooks.some((t) => t.playerId === me)
+  const promises = myClaimsView(state, me).count
 
   return (
     <div className="app">
@@ -106,6 +109,14 @@ export function BoardScreen({
       {/* Bottom dock = thumb reach: main actions, then the seasons. */}
       <footer className="dock">
         <div className="actionbar">
+          <button
+            type="button"
+            className="claims-button"
+            onClick={onOpenClaims}
+          >
+            📋 My claims
+            <span className="claims-count">{promises}</span>
+          </button>
           <button
             type="button"
             className="cook-button"
