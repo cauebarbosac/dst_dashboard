@@ -83,7 +83,7 @@ Claiming is the "task tag" system: putting your face on something means "I'm tak
 ## 5. Seasons
 
 - The board follows the current season: **Autumn, Winter, Spring, Summer**. Each has its own **preset list** of objectives, in priority order.
-- The season is changed manually with **one tap, by anyone**. The dashboard can't read the game.
+- The season is changed manually **by anyone**: tap the season name, then the new season. Two deliberate taps, so it can't change by accident mid-fight. The dashboard can't read the game.
 - When the season changes, unfinished items from the previous season move to an **"Unfinished business"** tab. It's **minimized by default** and opens with a tap.
 
 *Example objectives (to refine later):*

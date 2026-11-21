@@ -1,7 +1,7 @@
 // The board: season, item cards, and (single-phone phase) the player
 // switcher. Taps are sent as actions; the rules decide what they mean.
 
-import { SEASON_ICONS, SEASON_NAMES, SEASON_ORDER } from '../data/seasons'
+import { useState } from 'react'
 import type { Action } from '../logic/actions'
 import type { GameState, PlayerId } from '../logic/state'
 import {
@@ -9,7 +9,9 @@ import {
   builtListView,
   myClaimsView,
   playerTags,
+  type CardView,
 } from '../logic/view'
+import { CookButton, CookStrip } from './Cooking'
 import { ItemCard, PlayerTag } from './ItemCard'
 
 type BoardScreenProps = {
@@ -19,6 +21,7 @@ type BoardScreenProps = {
   onOpenSetup: () => void
   onOpenClaims: () => void
   onOpenBuilt: () => void
+  onOpenSeason: () => void
   dispatch: (action: Action) => void
 }
 
@@ -29,6 +32,7 @@ export function BoardScreen({
   onOpenSetup,
   onOpenClaims,
   onOpenBuilt,
+  onOpenSeason,
   dispatch,
 }: BoardScreenProps) {
   const board = boardView(state)
@@ -36,13 +40,43 @@ export function BoardScreen({
   const amCooking = board.cooks.some((t) => t.playerId === me)
   const promises = myClaimsView(state, me).count
   const builtCount = builtListView(state).length
+  // Unfinished business starts minimized; one tap opens it.
+  const [showUnfinished, setShowUnfinished] = useState(false)
+
+  const renderCard = (card: CardView) => (
+    <ItemCard
+      key={card.itemId}
+      card={card}
+      onTapBuilder={() =>
+        dispatch({ type: 'tapBuilder', playerId: me, itemId: card.itemId })
+      }
+      onBuild={() => dispatch({ type: 'markBuilt', itemId: card.itemId })}
+      onTapSlot={(slotIndex) =>
+        dispatch({
+          type: 'tapSlot',
+          playerId: me,
+          itemId: card.itemId,
+          slotIndex,
+        })
+      }
+    />
+  )
 
   return (
     <div className="app">
       <header className="topbar">
-        <h1 className="season-label">
+        {/* The season control: tap to open the season picker. */}
+        <button
+          type="button"
+          className="season-switch"
+          aria-label={`Season: ${board.seasonName}. Tap to change`}
+          onClick={onOpenSeason}
+        >
           <span aria-hidden="true">{board.seasonIcon}</span> {board.seasonName}
-        </h1>
+          <span className="season-caret" aria-hidden="true">
+            ▾
+          </span>
+        </button>
         <div className="topbar-buttons">
           <button
             type="button"
@@ -83,49 +117,38 @@ export function BoardScreen({
         </div>
       )}
 
-      {/* Everyone sees who's cooking. Only who, not what: talk about the rest. */}
-      {board.cooks.length > 0 && (
-        <div className="cookstrip" role="status">
-          <span aria-hidden="true">🍲</span>
-          {board.cooks.map((t) => (
-            <PlayerTag key={t.playerId} tag={t} />
-          ))}
-          <span>{board.cooks.length === 1 ? 'is cooking' : 'are cooking'}</span>
-        </div>
-      )}
+      {/* Everyone sees who's cooking. Only who, not what. */}
+      <CookStrip cooks={board.cooks} />
 
       <main className="board">
-        {board.cards.map((card) => (
-          <ItemCard
-            key={card.itemId}
-            card={card}
-            onTapBuilder={() =>
-              dispatch({
-                type: 'tapBuilder',
-                playerId: me,
-                itemId: card.itemId,
-              })
-            }
-            onBuild={() => dispatch({ type: 'markBuilt', itemId: card.itemId })}
-            onTapSlot={(slotIndex) =>
-              dispatch({
-                type: 'tapSlot',
-                playerId: me,
-                itemId: card.itemId,
-                slotIndex,
-              })
-            }
-          />
-        ))}
+        {board.cards.map(renderCard)}
         {board.cards.length === 0 && (
           <p className="board-empty">All done for this season 🎉</p>
         )}
         {board.hiddenCount > 0 && (
           <p className="board-more">+{board.hiddenCount} more waiting</p>
         )}
+
+        {board.unfinished.length > 0 && (
+          <section className="unfinished">
+            <button
+              type="button"
+              className="unfinished-toggle"
+              aria-expanded={showUnfinished}
+              onClick={() => setShowUnfinished((open) => !open)}
+            >
+              <span>📦 Unfinished business</span>
+              <span className="claims-count">{board.unfinished.length}</span>
+              <span className="season-caret" aria-hidden="true">
+                {showUnfinished ? '▴' : '▾'}
+              </span>
+            </button>
+            {showUnfinished && board.unfinished.map(renderCard)}
+          </section>
+        )}
       </main>
 
-      {/* Bottom dock = thumb reach: main actions, then the seasons. */}
+      {/* Bottom dock = thumb reach: the main actions. */}
       <footer className="dock">
         <div className="actionbar">
           <button
@@ -136,31 +159,11 @@ export function BoardScreen({
             📋 My claims
             <span className="claims-count">{promises}</span>
           </button>
-          <button
-            type="button"
-            className="cook-button"
-            aria-pressed={amCooking}
-            onClick={() => dispatch({ type: 'toggleCooking', playerId: me })}
-          >
-            {amCooking ? '🍲 Cooking… tap when done' : '🍲 I’m cooking'}
-          </button>
+          <CookButton
+            amCooking={amCooking}
+            onToggle={() => dispatch({ type: 'toggleCooking', playerId: me })}
+          />
         </div>
-
-        {/* A preview control; the real one-tap season control comes in M8. */}
-        <nav className="seasonbar" aria-label="Season">
-          {SEASON_ORDER.map((season) => (
-            <button
-              key={season}
-              type="button"
-              className="season-button"
-              aria-pressed={state.season === season}
-              onClick={() => dispatch({ type: 'setSeason', season })}
-            >
-              <span aria-hidden="true">{SEASON_ICONS[season]}</span>
-              {SEASON_NAMES[season]}
-            </button>
-          ))}
-        </nav>
       </footer>
     </div>
   )

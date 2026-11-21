@@ -9,6 +9,7 @@ import { markBuilt } from '../../src/logic/building'
 import { claimSlot } from '../../src/logic/claims'
 import { triggerCrisis } from '../../src/logic/crises'
 import { nextSeason, setSeason } from '../../src/logic/seasons'
+import { boardView, seasonOptions } from '../../src/logic/view'
 import { cardOf } from '../../src/logic/state'
 import { gameWith } from './helpers'
 
@@ -83,5 +84,46 @@ describe('M2 seasons and Unfinished business', () => {
   it('next season follows game order and wraps from summer to autumn', () => {
     expect(nextSeason('autumn')).toBe('winter')
     expect(nextSeason('summer')).toBe('autumn')
+  })
+})
+
+describe('M8 season control and Unfinished business on screen', () => {
+  it('the picker lists the 4 seasons in order and marks the current one', () => {
+    const options = seasonOptions(setSeason(gameWith('wilson'), 'spring'))
+    expect(options.map((o) => [o.name, o.current])).toEqual([
+      ['Autumn', false],
+      ['Winter', false],
+      ['Spring', true],
+      ['Summer', false],
+    ])
+    expect(options.map((o) => o.icon)).toEqual(['🍂', '❄️', '🌧️', '☀️'])
+  })
+
+  it('no Unfinished business tab content in the first season', () => {
+    expect(boardView(gameWith('wilson')).unfinished).toEqual([])
+  })
+
+  it('after a season change, leftover items are shown as full cards', () => {
+    let game = claimSlot(gameWith('wilson'), 'p1', 'crock-pot', 0)
+    game = markBuilt(game, 'science-machine')
+    game = setSeason(game, 'winter')
+    const unfinished = boardView(game).unfinished
+    expect(unfinished.map((c) => c.itemId)).toEqual([
+      'alchemy-engine',
+      'crock-pot',
+      'ice-box',
+      'backpack',
+      'log-suit',
+    ])
+    // claims are kept, so the card still shows who promised what
+    expect(unfinished[1].slots[0].claimedBy?.label).toBe('WIL')
+  })
+
+  it('building an item from Unfinished business removes it from the tab', () => {
+    let game = setSeason(gameWith('wilson'), 'winter')
+    game = markBuilt(game, 'ice-box')
+    expect(boardView(game).unfinished.map((c) => c.itemId)).not.toContain(
+      'ice-box',
+    )
   })
 })
