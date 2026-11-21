@@ -101,7 +101,8 @@ Derived views the UI reads (`board.ts`): `visibleBoard`, `boardQueue`, `unfinish
 | M3 | ✅ merged 2026-11-21 (PR #4) | Board screen + claiming by tap (pulled forward from M5). Phone checklist (M3 section) not reported yet; the 3-vs-4 cards question is still open. |
 | M4 | ✅ done 2026-11-21 | Players setup, player switcher, saving on the phone (`src/storage/`), remove / new game by tap-then-hold (1.5 s). 154 tests green. Phone-checked by the user. Branch `m4-players-and-saving` pushed; merge via PR. |
 | M5 | ✅ done 2026-11-21 | Cooking button + "who's cooking" strip (claiming was done in M3), 158 tests green. Phone-checked by the user. Branch `m5-cooking` pushed; merge via PR. Still open: 2, 3 or 4 cards. |
-| M6 | ⏭ next | My claims. |
+| M6 | ✅ done 2026-11-21 | My claims button (with count) + My claims screen with release and take-back, 166 tests green. Phone-checked by the user. Branch `m6-my-claims` pushed; merge via PR. |
+| M7 | ⏭ next | Building (long press), quantities and the Built list. |
 
 **Next session starts here:** read this table, then the milestone's section below.
 
@@ -198,6 +199,14 @@ Each milestone is one git branch, merged when its **Done when** list passes, on 
 ### M6: My claims
 - A big button, always visible, that opens your claims across all cards: which ingredients you owe, for which item, and which items you're building. Releasing works from there too.
 - This is the core feature, so it comes right after claiming.
+- As built:
+  - `myClaimsView` (`src/logic/view.ts`, tested): my promises grouped by item (name, station, ingredients with amounts, builder role), board items first, plus a `count` (one per ingredient + one per builder role).
+  - **"📋 My claims" button** in the bottom dock, next to the cooking button, with the count in a badge.
+  - **My claims screen** (`src/ui/MyClaimsScreen.tsx`): big ingredient names. Tap a row to release it. **Released rows stay on screen, crossed out, with "↩ tap to take back"** until you leave the screen, so a mis-tap is undone with one more tap. "← Back to the board" at the bottom.
+- Phone checklist:
+  - [x] After claiming on 2–3 cards, My claims answers "what did I promise?" at a glance.
+  - [x] Releasing from the list, and taking it back, both feel safe.
+  - [x] The count on the button is useful (not distracting).
 - **Done when:** after claiming on several cards, My claims answers "what did I promise?" at a glance.
 
 ### M7: Building, quantities and the Built list
