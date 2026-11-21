@@ -136,6 +136,9 @@ Small syntax crib:
 | **`onClick={() => …}`** | "Run this function when tapped". Like passing a callback (`command=`) to a Tkinter button. Our buttons only `dispatch` an action; the rule itself lives in `src/logic/`. |
 | **`useState`** | One value React remembers between redraws, e.g. which demo player is tapping (`me`). Simpler than `useReducer` when there are no rules involved. |
 | **`useEffect(() => …, [x])`** | "After drawing, run this whenever `x` changed". We use it to save the game after every change, and for the 3-second timer of the two-tap confirm. If it returns a function, React calls that to clean up (like a context manager's `__exit__`). |
+| **`useRef`** | A box React keeps between redraws, *without* redrawing when its content changes. Like an attribute on `self` that the UI doesn't watch. |
+| **Pointer events** (`onPointerDown`, `onPointerUp`, …) | Finger/mouse down and up, as separate events (a click is the two together). Needed to measure a *hold*. |
+| **State machine** | A fixed set of phases plus "on event X, go from phase A to B". `src/ui/holdToConfirm.ts` is one, written as a pure function so it's easy to test. |
 
 ## 6. Browser & web-app concepts
 
