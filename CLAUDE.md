@@ -7,6 +7,7 @@ Unrelated to any other repo on this machine — don't pull in context, conventio
 
 - `dst-dashboard-idea.md` — how the dashboard should work and feel (no tech decisions).
 - `dst-dashboard-plan.md` — tech decisions (section 0) and milestones M0–M12.
+- **Where we are:** the Progress table at the top of section 2 in the plan. Read it first; update it before ending a session.
 - When code and these docs disagree about *what exists*, the code wins. When a decision changes, update the docs in the same change.
 
 ## About me
@@ -40,4 +41,4 @@ Unrelated to any other repo on this machine — don't pull in context, conventio
 
 ## Git
 
-- Never add a `Co-Authored-By:` trailer to commit messages.
+- **This repo only (overrides the global "no Co-Authored-By" rule):** end Claude's commit messages with the `Co-Authored-By: Claude …` trailer, so Claude's commits are credited.

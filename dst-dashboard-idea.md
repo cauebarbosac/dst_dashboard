@@ -100,6 +100,8 @@ Claiming is the "task tag" system: putting your face on something means "I'm tak
 - **One tap on the banner ends the crisis**, and the board goes back to normal.
 - **Several crises at once are allowed.** The **latest one triggered** takes the top of the board.
 - Each crisis has its own **preset list** of items.
+- Each crisis has a small **icon** (an emoji for now, e.g. 💉 for *Teammate down*), so it can be recognized without reading.
+- A crisis list is a **direction, not a counter.** Example: after several revives with a Telltale Heart, a player needs one Booster Shot per revive. The card shows one Booster Shot. If more are needed, the players talk it over and send it back from the Built list each time. No numbers to pick.
 
 ## 7. My claims: a central feature
 
@@ -109,7 +111,16 @@ This is the problem that started the whole idea: *"what was I doing, and what di
 - It should be readable in a glance while running around the map.
 - Releasing a claim from here works the same way: a single tap.
 
-## 8. Scope of the first version
+## 8. Who's cooking
+
+Cooking at the Crock Pot keeps a player busy, so others need to know about it.
+
+- A **"Cooking" button** is always visible. One tap means "I'm cooking", and another tap means "I'm done". That's all.
+- Every dashboard shows who is cooking (their face with a cooking mark).
+- It shows **only who** is cooking, **not what** they cook. The players can talk about the rest.
+- Cooking is the only status for now. Others (e.g. "I'm a ghost") may come later, after trying this one.
+
+## 9. Scope of the first version
 
 **In:**
 - preset season and crisis lists only
@@ -121,13 +132,14 @@ This is the problem that started the whole idea: *"what was I doing, and what di
 - crisis mode
 - My claims view
 - station icons
+- "who's cooking" status
 
 **Later:**
 - editing the lists mid-game (e.g. adding "we need a Boat")
 - partial quantity claims (e.g. 6 of 10 Rocks)
 - the visual and "artistic" details, decided one by one: colors, the red blink, sounds, animations, the look of the cards
 
-## 9. Open questions
+## 10. Open questions
 
 - Do items in **Unfinished business** keep their claims, or are they cleared?
 - When an item comes back from the **Built list**, does it start fresh (no claims, no checks)?

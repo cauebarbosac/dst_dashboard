@@ -92,6 +92,10 @@ Small syntax crib:
 | `if __name__ == "__main__":` | *(no equivalent)* the entry point is set in config (`src/main.tsx`) |
 | `TypedDict` / `@dataclass` (shape only) | `type Card = { id: string, ... }` or `interface Card { ... }` |
 | `Literal["once", "perPlayer"]` | `'once' \| 'perPlayer'` (union type) |
+| `dict[str, Item]` | `Record<string, Item>` | A dict type with fixed key and value types. `Record<Season, …>` forces all 4 season keys to be present. |
+| `Literal[*MY_DICT.keys()]` (not real Python, but that's the idea) | `keyof typeof ITEMS` | "The type made of this object's keys". `ItemId` in `src/data/items.ts` is built this way, so a typo in an item id fails the type check. |
+| `x: Item = {...}` (check the value against a shape) | `{...} satisfies Item` | Checks the value matches the shape but keeps its exact keys and values for the type checker. |
+| `from m import Item` used only for hints (`if TYPE_CHECKING:`) | `import type { Item } from './m'` | Import used only by the type checker. It vanishes from the built app. |
 | `==` | `===` (always use the triple one; `==` does surprising conversions) |
 | `async def` / `await` | `async function` / `await` — same idea |
 | `print()` | `console.log()` (shows up in the browser's DevTools console) |
@@ -149,6 +153,7 @@ Small syntax crib:
 | `src/main.tsx` | entry point, starts React | `__main__.py` |
 | `src/App.tsx` | the top-level screen | `app.py` |
 | `src/logic/` | game rules, pure functions | your plain Python module |
+| `src/data/` | hand-written game data: items, seasons, crises, characters | a `constants.py` module |
 | `tests/features/`, `tests/regression/` | feature tests and bug tests (see `tests/README.md`) | `tests/` |
 | `src/index.css` | global styles | — |
 | `public/` | files copied as-is (icons) | package data files |

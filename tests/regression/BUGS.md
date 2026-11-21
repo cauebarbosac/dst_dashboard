@@ -8,7 +8,7 @@ checked by hand on the phone).
 
 | ID | Found | Milestone | Symptom (what went wrong) | Cause | Fix | Test | Status |
 |---|---|---|---|---|---|---|---|
-| — | — | — | *no bugs yet* | — | — | — | — |
+| BUG-001 | 2026-11-20 | M1 | On Windows, `npm test` fails every suite with `TypeError: Cannot read properties of undefined (reading 'config')` at the first `describe`, even the untouched M0 test | Tooling, not app code: the terminal's folder was `c:\…` (lowercase drive letter, as VS Code opens it) while Vitest resolves `C:/…`, so Vitest loads twice and `describe` can't find its runner. CI (Linux) is not affected | Run from the uppercase path: `cd C:\Users\caueb\dst_dashboard` before `npm test` (or open the folder in VS Code via `C:\…`) | none (environment only) | manual |
 
 <!--
 Example row:
