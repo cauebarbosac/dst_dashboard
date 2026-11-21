@@ -42,3 +42,8 @@ Unrelated to any other repo on this machine — don't pull in context, conventio
 ## Git
 
 - **This repo only (overrides the global "no Co-Authored-By" rule):** end Claude's commit messages with the `Co-Authored-By: Claude …` trailer, so Claude's commits are credited.
+- Commit and push only when the user says so (usually "commit and push" after their phone check).
+- **Pull requests:** when the user says "commit and push", Claude also opens the PR with `gh pr create` (title `M<n>: …`, a short summary, tests run, and the phone checklist) and gives the user the link.
+- **Merging is the user's click:** a merge to `main` deploys to GitHub Pages. Claude never merges unless the user explicitly asks in that conversation.
+- After the user merges: `git switch main && git pull`, check the deploy (`gh run list --limit 1`), then branch for the next milestone.
+- `gh` is installed at `C:\Program Files\GitHub CLI\gh.exe`; use the full path if `gh` isn't found (terminals opened before the install don't have it on PATH).
