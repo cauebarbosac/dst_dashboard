@@ -5,6 +5,8 @@ import {
   claimSlot,
   releaseBuilder,
   releaseSlot,
+  tapBuilder,
+  tapSlot,
 } from '../../src/logic/claims'
 import { cardOf } from '../../src/logic/state'
 import { gameWith } from './helpers'
@@ -112,5 +114,41 @@ describe('M2 builder claim', () => {
       builder: 'p1',
       claims: { 0: 'p1' },
     })
+  })
+})
+
+describe('M3 tapping (one tap toggles a claim)', () => {
+  it('tapping an empty slot claims it', () => {
+    const game = tapSlot(gameWith('wilson'), 'p1', SM, 0)
+    expect(cardOf(game, SM).claims).toEqual({ 0: 'p1' })
+  })
+
+  it('tapping my own claim releases it', () => {
+    let game = tapSlot(gameWith('wilson'), 'p1', SM, 0)
+    game = tapSlot(game, 'p1', SM, 0)
+    expect(cardOf(game, SM).claims).toEqual({})
+  })
+
+  it("tapping someone else's claim does nothing", () => {
+    const game = tapSlot(gameWith('wilson', 'willow'), 'p1', SM, 0)
+    expect(tapSlot(game, 'p2', SM, 0)).toBe(game)
+  })
+
+  it('tapping the item claims, then releases, the builder role', () => {
+    let game = tapBuilder(gameWith('wilson'), 'p1', SM)
+    expect(cardOf(game, SM).builder).toBe('p1')
+    game = tapBuilder(game, 'p1', SM)
+    expect(cardOf(game, SM).builder).toBeNull()
+  })
+
+  it('tapping an item someone else builds does nothing', () => {
+    const game = tapBuilder(gameWith('wilson', 'willow'), 'p1', SM)
+    expect(tapBuilder(game, 'p2', SM)).toBe(game)
+  })
+
+  it('tapping a slot of a built item does nothing', () => {
+    const game = markBuilt(gameWith('wilson'), SM)
+    expect(tapSlot(game, 'p1', SM, 0)).toBe(game)
+    expect(tapBuilder(game, 'p1', SM)).toBe(game)
   })
 })

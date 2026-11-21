@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { CHARACTERS } from '../../src/data/characters'
 import { CRISES } from '../../src/data/crises'
 import { ITEMS } from '../../src/data/items'
-import { SEASON_LISTS, SEASON_ORDER } from '../../src/data/seasons'
+import {
+  SEASON_ICONS,
+  SEASON_LISTS,
+  SEASON_NAMES,
+  SEASON_ORDER,
+} from '../../src/data/seasons'
 import { STATIONS } from '../../src/data/stations'
 import type { Item } from '../../src/data/types'
 
@@ -92,6 +97,13 @@ describe('M1 game data: seasons', () => {
   it('no season list has duplicates', () => {
     for (const season of SEASON_ORDER) {
       expect(duplicates(SEASON_LISTS[season])).toEqual([])
+    }
+  })
+
+  it('every season has a name and an icon (M3)', () => {
+    for (const season of SEASON_ORDER) {
+      expect(SEASON_NAMES[season].trim()).not.toBe('')
+      expect(SEASON_ICONS[season].trim()).not.toBe('')
     }
   })
 })

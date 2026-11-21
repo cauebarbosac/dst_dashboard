@@ -1,8 +1,29 @@
+/* Phone portrait first. Colors are tokens so the "artistic" pass (M12)
+   only has to change this block. */
 :root {
   color-scheme: dark;
   font-family: system-ui, sans-serif;
-  background: #1b1712;
-  color: #f1e6d0;
+
+  --bg: #1b1712;
+  --panel: #2a231b;
+  --panel-edge: #4a3d2e;
+  --text: #f1e6d0;
+  --muted: #b3a68c;
+  --accent: #e0a84a;
+  --claimed: #3a332a;
+
+  --ring-red: #e0584a;
+  --ring-blue: #4a9de0;
+  --ring-green: #5fc26a;
+  --ring-yellow: #e8cf4a;
+  --ring-purple: #a87ae0;
+  --ring-orange: #e88a3a;
+
+  --touch: 56px; /* minimum touch target */
+  --gap: 12px;
+
+  background: var(--bg);
+  color: var(--text);
 }
 
 * {
@@ -12,9 +33,263 @@
 body {
   margin: 0;
   min-height: 100dvh;
+  background: var(--bg);
 }
 
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+/* Buttons: plain look, no grey flash or double-tap zoom on phones,
+   and a small "pressed" feedback so a tap is felt. */
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+/* ── Screen layout: header / scrolling board / bottom bar ── */
 .app {
-  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 8px;
+}
+
+.season-label {
+  font-size: 1.75rem;
+}
+
+/* TEMPORARY "who am I" switch (until M4). */
+.whoami {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.whoami-label {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-right: 2px;
+}
+
+.whoami-button {
+  min-width: var(--touch);
+  min-height: var(--touch);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  opacity: 0.45;
+}
+
+.whoami-button[aria-pressed='true'] {
+  border-color: var(--accent);
+  opacity: 1;
+}
+
+.board {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  padding: 8px 16px 16px;
+}
+
+.board-more,
+.board-empty {
+  color: var(--muted);
   text-align: center;
+  padding: 8px;
+}
+
+.board-empty {
+  font-size: 1.25rem;
+  padding: 48px 8px;
+}
+
+/* ── Item card ── */
+.card {
+  background: var(--panel);
+  border: 2px solid var(--panel-edge);
+  border-radius: 16px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: var(--touch); /* the builder slot */
+  width: 100%;
+  border-radius: 12px;
+  padding: 4px;
+  text-align: left;
+}
+
+.card-title {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-name {
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.builder-empty {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 2px dashed var(--panel-edge);
+  opacity: 0.6;
+}
+
+.station {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.slots {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 8px;
+}
+
+.slot {
+  width: 100%;
+  height: 100%;
+  min-height: 72px;
+  border: 2px dashed var(--panel-edge);
+  border-radius: 12px;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.slot-name {
+  font-size: 0.95rem;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.slot-amount {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* Claimed: grayed out, with the claimer's tag. */
+.slot.claimed {
+  background: var(--claimed);
+  border-style: solid;
+}
+
+.slot.claimed .slot-name,
+.slot.claimed .slot-amount {
+  opacity: 0.5;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 3px solid var(--ring);
+  font-weight: 700;
+  font-size: 0.8rem;
+  background: var(--bg);
+}
+
+.slot .tag {
+  opacity: 0.85; /* semi-transparent face on the claim */
+  min-width: 34px;
+  height: 34px;
+  margin-top: 4px;
+}
+
+.checks {
+  display: flex;
+  gap: 8px;
+}
+
+.check {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 2px solid var(--panel-edge);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+}
+
+.check.done {
+  border-color: var(--ring-green);
+  color: var(--ring-green);
+}
+
+/* ── Bottom bar (thumb reach) ── */
+.seasonbar {
+  position: sticky;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
+  background: var(--bg);
+  border-top: 1px solid var(--panel-edge);
+}
+
+.season-button {
+  min-height: 64px;
+  border-radius: 12px;
+  border: 2px solid var(--panel-edge);
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.season-button[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--claimed);
 }

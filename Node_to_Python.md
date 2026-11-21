@@ -115,7 +115,7 @@ Small syntax crib:
 | `setuptools` / build backend + dev server | **Vite** | The **bundler** + dev server. "Bundler" = takes many source files (TS, TSX, CSS), converts them to plain JS/CSS the browser understands, and packs them into a few small files. Config: `vite.config.ts`. Nothing exactly like it in Python, because Python doesn't need to ship code to a browser. |
 | a GUI/web framework (e.g. Streamlit's "rerun on change" model) | **React** | UI library. You describe what the screen should look like for a given state, and React updates the page when the state changes. |
 
-## 5. React concepts (coming in M3+)
+## 5. React concepts (used from M3)
 
 | Term | Python-ish analogy |
 |---|---|
@@ -126,6 +126,12 @@ Small syntax crib:
 | **Render / re-render** | React calling your component again to get the fresh UI. Like Streamlit rerunning your script top to bottom. |
 | **Reducer** | `def reducer(state, action) -> new_state`. A pure function that applies one action. Our `src/logic/` will be built in this style. |
 | **StrictMode** | A dev-only safety mode that runs some things twice to surface bugs. Harmless; you'll see it in `src/main.tsx`. |
+| **`useReducer(applyAction, …)`** | Hands our M2 reducer to React. It returns `[state, dispatch]`; `dispatch(action)` runs `applyAction` and React redraws with the new state. `src/App.tsx` uses it. |
+| **`key`** (`<ItemCard key={id} />`) | A stable id for each item in a drawn list, so React knows which card is which between redraws. Like a dict key. |
+| **`className`** | The HTML `class` attribute, written `className` in JSX (`class` is a reserved word in JS, as in Python). |
+| **`{cond && <X />}`** | "Draw X only if cond". Like `x if cond else None` inside a template. |
+| **`onClick={() => …}`** | "Run this function when tapped". Like passing a callback (`command=`) to a Tkinter button. Our buttons only `dispatch` an action; the rule itself lives in `src/logic/`. |
+| **`useState`** | One value React remembers between redraws, e.g. which demo player is tapping (`me`). Simpler than `useReducer` when there are no rules involved. |
 
 ## 6. Browser & web-app concepts
 
@@ -146,6 +152,12 @@ Small syntax crib:
 | **Workflow** (`.github/workflows/*.yml`) | One Actions recipe, written in YAML: *when* to run (e.g. push to `main`) and the *steps* (install, test, build, deploy). Like a `tox.ini`/`Makefile` that GitHub runs for you on a fresh machine. |
 | **Auto-deploy / CD** | "Continuous deployment": every push to `main` that passes the tests is published automatically. No manual upload step. |
 | **Base path** (`base` in `vite.config.ts`) | The folder the site lives under. GitHub Pages serves us at `/dst_dashboard/`, not `/`, so every file link must start with that. Like setting `SCRIPT_NAME`/`APPLICATION_ROOT` for a Flask app mounted under a sub-path. |
+| **CSS variable** (`--accent: #e0a84a;` then `var(--accent)`) | A named constant in the stylesheet. All our colors are defined once at the top of `src/index.css`. |
+| **Flexbox / Grid** (`display: flex` / `display: grid`) | The two CSS layout systems: flex lines things up in one row or column; grid makes rows *and* columns (our ingredient slots). |
+| **`dvh`** (`100dvh`) | "% of the visible screen height", which accounts for the phone's browser bars appearing and disappearing. |
+| **Safe area** (`env(safe-area-inset-bottom)`) | Extra space for the phone's home bar / notch, so bottom buttons aren't hidden under it. Needs `viewport-fit=cover` in `index.html`. |
+| **`aria-*` attributes** (`aria-pressed`, `aria-label`) | Hints for screen readers. We also style with them: the selected season button is the one with `aria-pressed="true"`. |
+| **Headless browser** | A browser with no window, driven from the command line, e.g. to take screenshots. Used to check the layout at phone width. |
 
 ## 7. Project files, at a glance
 
@@ -159,6 +171,7 @@ Small syntax crib:
 | `src/App.tsx` | the top-level screen | `app.py` |
 | `src/logic/` | game rules, pure functions | your plain Python module |
 | `src/data/` | hand-written game data: items, seasons, crises, characters | a `constants.py` module |
+| `src/ui/` | React components (screen pieces), e.g. `ItemCard.tsx` | your templates / view layer |
 | `tests/features/`, `tests/regression/` | feature tests and bug tests (see `tests/README.md`) | `tests/` |
 | `src/index.css` | global styles | — |
 | `public/` | files copied as-is (icons) | package data files |
