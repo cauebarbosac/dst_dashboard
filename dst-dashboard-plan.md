@@ -103,7 +103,8 @@ Derived views the UI reads (`board.ts`): `visibleBoard`, `boardQueue`, `unfinish
 | M5 | ✅ done 2026-11-21 | Cooking button + "who's cooking" strip (claiming was done in M3), 158 tests green. Phone-checked by the user. Branch `m5-cooking` pushed; merge via PR. Still open: 2, 3 or 4 cards. |
 | M6 | ✅ done 2026-11-21 | My claims button (with count) + My claims screen with release and take-back, 166 tests green. Phone-checked by the user. Branch `m6-my-claims` pushed; merge via PR. |
 | M7 | ✅ done 2026-11-21 | Hold to build (with N checks), Built list with hold to send back, 178 tests green. Phone-checked by the user. Branch `m7-building` pushed, PR opened by Claude. |
-| M8 | ⏭ next | Seasons and Unfinished business. |
+| M8 | ✅ done 2026-11-21 | Season picker, Unfinished business tab, season bar removed from the dock; My claims got the cooking strip and the same two-button dock as the board. 182 tests green. Phone-checked by the user. Branch `m8-seasons` pushed, PR opened by Claude. |
+| M9 | ⏭ next | Crisis mode. |
 
 **Next session starts here:** read this table, then the milestone's section below.
 
@@ -231,6 +232,16 @@ Each milestone is one git branch, merged when its **Done when** list passes, on 
 ### M8: Seasons and Unfinished business
 - One big season control.
 - Changing season moves unfinished items into a minimized **Unfinished business** tab that opens with a tap.
+- As built:
+  - **Season control = the season name at the top** ("🍂 Autumn ▾"). Tap it to open the **season picker** (`src/ui/SeasonScreen.tsx`): 4 big buttons, the current one marked "now"; tap one to switch and go back. Two deliberate taps, so a stray tap can't change the season, and a mistake is fixed the same way (pick any season directly). `seasonOptions` in `view.ts`, tested.
+  - The M3 preview season bar is gone from the bottom dock, which frees room for the cards.
+  - **Cooking on My claims too** (user request 2026-11-21): the "who's cooking" strip under the header, and **the same two-button dock as the board**: "← Board" where "📋 My claims" sits on the board, and the cooking button on the right, same place and size. Strip and button are one shared component (`src/ui/Cooking.tsx`) used by both screens.
+  - **Unfinished business**: a collapsed row "📦 Unfinished business (N) ▾" under the board, only when there's something in it. One tap opens it and shows those items as normal cards (claim and build work there too). `boardView.unfinished`, tested.
+- Phone checklist:
+  - [x] Changing season is easy on purpose and hard by accident.
+  - [x] After a season change, leftovers show up in Unfinished business, with their claims.
+  - [x] Opening and closing the tab is obvious; building from it works.
+  - [x] On My claims: the cooking strip shows, and the cooking button works the same as on the board.
 - **Done when:** switching seasons behaves as the idea file describes.
 
 ### M9: Crisis mode
@@ -289,7 +300,7 @@ From the idea file:
 - ~~What goes in each season and crisis list?~~ First lists agreed in M1 (2026-11-20).
 
 New:
-- **K:** how many cards are visible at once, 3 or 4? Set to **3** for now (`BOARD_SIZE`); decide on the phone at M3.
+- ~~**K:** how many cards are visible at once, 3 or 4?~~ **3** (`BOARD_SIZE`), decided by the user on the phone (2026-11-21).
 - **Undoing a check:** decided for now (2026-11-21): a mistaken long press is fixed by restoring the item from the Built list (it comes back fresh). Revisit "undo last check" only if it hurts in play.
 - **Long-press time:** 2 s, or shorter (1.5 s)? The hold-to-confirm uses **1.5 s** (`HOLD_MS`, M4); M7's build long press can share it once tried on the phone.
 - **Hosted service:** Firebase or Supabase. Decide at M11 after checking current free-tier terms.
