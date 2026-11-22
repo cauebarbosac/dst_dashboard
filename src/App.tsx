@@ -9,6 +9,7 @@ import { BuiltScreen } from './ui/BuiltScreen'
 import { MyClaimsScreen } from './ui/MyClaimsScreen'
 import { SeasonScreen } from './ui/SeasonScreen'
 import { SetupScreen } from './ui/SetupScreen'
+import { useKeepAwake } from './ui/useKeepAwake'
 
 // Where the game is saved. Phase 1: this phone. M11 swaps this one line
 // for the hosted service.
@@ -29,10 +30,14 @@ export default function App() {
     'setup' | 'board' | 'claims' | 'built' | 'season'
   >(() => (state.players.length === 0 ? 'setup' : 'board'))
   const me = resolveMe(state, rememberedMe)
+  // M10: keep the screen awake while the app is open (toggle on Players).
+  const [keepAwake, setKeepAwake] = useState(() => store.loadKeepAwake())
+  const keepAwakeSupported = useKeepAwake(keepAwake)
 
   // useEffect: after every change, save. ([state] = "when state changes".)
   useEffect(() => store.saveGame(state), [state])
   useEffect(() => store.saveMe(me), [me])
+  useEffect(() => store.saveKeepAwake(keepAwake), [keepAwake])
 
   if (screen === 'setup' || me === null) {
     return (
@@ -42,6 +47,9 @@ export default function App() {
         onRemove={(playerId) => dispatch({ type: 'removePlayer', playerId })}
         onNewGame={() => dispatch({ type: 'newGame' })}
         onDone={() => setScreen('board')}
+        keepAwake={keepAwake}
+        keepAwakeSupported={keepAwakeSupported}
+        onToggleKeepAwake={() => setKeepAwake((on) => !on)}
       />
     )
   }

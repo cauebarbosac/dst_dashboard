@@ -18,6 +18,9 @@ export type GameStore = {
   /** "I am this player" belongs to the device, not to the shared game. */
   loadMe(): PlayerId | null
   saveMe(playerId: PlayerId | null): void
+  /** "Keep screen awake" (M10), also per device. On unless turned off. */
+  loadKeepAwake(): boolean
+  saveKeepAwake(on: boolean): void
 }
 
 /** The part of the browser's localStorage we use (easy to fake in tests). */
@@ -28,6 +31,7 @@ export type KeyValueStorage = Pick<
 
 const GAME_KEY = 'dst-dashboard:game'
 const ME_KEY = 'dst-dashboard:me'
+const KEEP_AWAKE_KEY = 'dst-dashboard:keep-awake'
 /** Bump when the saved shape changes; older saves are then ignored. */
 export const SAVE_VERSION = 1
 
@@ -70,6 +74,12 @@ export function createLocalStore(storage: KeyValueStorage | null): GameStore {
     },
     saveMe(playerId) {
       write(ME_KEY, playerId)
+    },
+    loadKeepAwake() {
+      return read(KEEP_AWAKE_KEY) !== 'off'
+    },
+    saveKeepAwake(on) {
+      write(KEEP_AWAKE_KEY, on ? 'on' : 'off')
     },
   }
 }
