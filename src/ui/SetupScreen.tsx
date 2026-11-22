@@ -13,6 +13,9 @@ type SetupScreenProps = {
   onRemove: (playerId: PlayerId) => void
   onNewGame: () => void
   onDone: () => void
+  keepAwake: boolean
+  keepAwakeSupported: boolean
+  onToggleKeepAwake: () => void
 }
 
 export function SetupScreen({
@@ -21,6 +24,9 @@ export function SetupScreen({
   onRemove,
   onNewGame,
   onDone,
+  keepAwake,
+  keepAwakeSupported,
+  onToggleKeepAwake,
 }: SetupScreenProps) {
   return (
     <div className="app">
@@ -67,6 +73,30 @@ export function SetupScreen({
               </button>
             ))}
           </div>
+        </section>
+
+        {/* M10: a phone setting, not part of the game. */}
+        <section>
+          <h2 className="setup-heading">This phone</h2>
+          <button
+            type="button"
+            className="setting-row"
+            role="switch"
+            aria-checked={keepAwake}
+            onClick={onToggleKeepAwake}
+          >
+            <span className="setting-label">
+              💡 Keep screen awake
+              {!keepAwakeSupported && (
+                <span className="setting-note">
+                  Not available in this browser
+                </span>
+              )}
+            </span>
+            <span className={`setting-state${keepAwake ? ' on' : ''}`}>
+              {keepAwake ? 'On' : 'Off'}
+            </span>
+          </button>
         </section>
       </main>
 
