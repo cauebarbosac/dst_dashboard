@@ -150,9 +150,14 @@ Small syntax crib:
 | **Hot reload / HMR** | Save a file → the page updates in place without a full reload. Like `flask --debug` auto-reload, but faster and keeps the page state. |
 | **Static site** | A site that's just files (HTML/CSS/JS), no server code running. Ours is one, which is why GitHub Pages can host it for free. |
 | **localStorage** | A small key-value store in the browser, per site. Like a tiny `shelve` file that lives on the phone. We'll use it in M4 for local saving. |
-| **PWA (Progressive Web App)** | A website that can be "installed" to the home screen, opens fullscreen and works offline. Comes in M10. |
+| **PWA (Progressive Web App)** | A website that can be "installed" to the home screen, opens fullscreen and works offline. Added in M10. |
 | **Service worker** | A background script the browser runs for a PWA. Mainly caches files so the app opens offline. Like a local caching proxy for your own site. |
 | **Manifest** (`manifest.json`) | Metadata for installing a PWA: name, icon, colors. Like the metadata in `pyproject.toml`, but for the home-screen icon. |
+| **Cache Storage** (`caches.open(...)`) | The browser's store for whole saved responses (pages, JS, images), used by the service worker. Like a `requests-cache` folder: URL in, saved response out. |
+| **Install / activate** (service worker events) | `install` = a new version was downloaded, save its files; `activate` = it took over, clean up older versions. Like a deploy script's "copy new release" and "delete old releases" steps. |
+| **Maskable icon** | An app icon with extra margin, so Android can crop it to a circle or squircle without cutting the drawing. |
+| **Screen wake lock** (`navigator.wakeLock`) | Asks the phone not to dim or lock while the app is in front. The browser drops it when the app goes to the background, so it is asked for again on return. Only works on `https://` (or `localhost`). |
+| **Vite plugin** | A small object with hooks Vite calls during the build (e.g. `closeBundle` = "build finished"). Ours writes `sw.js`. Like a setuptools build hook. |
 | **Viewport** | The visible area of the page on a phone. The `<meta name="viewport">` line in `index.html` tells phones not to zoom out. |
 | **ES modules (`"type": "module"`)** | The modern `import`/`export` system. The line in `package.json` says "this project uses it". |
 | **GitHub Pages** | Free static hosting from a GitHub repo. Ours: `https://cauebarbosac.github.io/dst_dashboard/`. |

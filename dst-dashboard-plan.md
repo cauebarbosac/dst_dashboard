@@ -105,7 +105,8 @@ Derived views the UI reads (`board.ts`): `visibleBoard`, `boardQueue`, `unfinish
 | M7 | ✅ done 2026-11-21 | Hold to build (with N checks), Built list with hold to send back, 178 tests green. Phone-checked by the user. Branch `m7-building` pushed, PR opened by Claude. |
 | M8 | ✅ done 2026-11-21 | Season picker, Unfinished business tab, season bar removed from the dock; My claims got the cooking strip and the same two-button dock as the board. 182 tests green. Phone-checked by the user. Branch `m8-seasons` pushed, PR opened by Claude. |
 | M9 | ✅ done 2026-11-21 | Crisis buttons in the dock, red banners (tap to end), crisis cards marked. 190 tests green. Phone-checked by the user. Branch `m9-crisis` pushed, PR opened by Claude. |
-| M10 | ⏭ next | Installable phone app (PWA). |
+| M10 | 🔨 built 2026-11-22, waiting for phone check | Manifest + icons, service worker (opens offline), keep-screen-awake toggle on Players. 222 tests green. Branch `m10-pwa`. |
+| M11 | ⏭ next | Shared live board. |
 
 **Next session starts here:** read this table, then the milestone's section below.
 
@@ -262,6 +263,19 @@ Each milestone is one git branch, merged when its **Done when** list passes, on 
 
 ### M10: Installable phone app (PWA)
 - Home-screen install, fullscreen, works offline, and keeps the screen awake while open (optional toggle).
+- As built (no new dependencies, all hand-written so it stays readable):
+  - **Manifest** (`public/manifest.webmanifest`): name "DST Board", fullscreen, portrait, dark colors, relative addresses so it works under `/dst_dashboard/`. `index.html` links it, plus the iPhone tags (`apple-touch-icon`, status bar).
+  - **Icons**: placeholder ring + campfire dot in the app colors, drawn by `scripts/make-icons.mjs` (run it again to redraw; real art comes with M12). 192, 512 (also maskable) and 180 for iPhone.
+  - **Service worker** (`src/pwa/sw.js`): on install it saves the app page and every built file. Opening the app tries the network first (to get the newest deploy) but gives up after **3 s** or when offline and opens the saved copy. Built files always come from the saved copy. Each deploy gets a new version (a hash of all built files); old saved copies are deleted. A small Vite plugin in `vite.config.ts` fills in the file list after `npm run build` (`src/pwa/buildServiceWorker.ts`). Not used by `npm run dev`.
+  - **Keep screen awake** (`src/pwa/wakeLock.ts` + `src/ui/useKeepAwake.ts`): **on by default**, toggle under "This phone" on the Players screen, remembered per device. Asked again each time the app comes back to the front. Shows "Not available in this browser" where there is no wake lock (also on the dev server over plain `http://`, which browsers don't trust for it).
+  - The app now leaves room for the notch at the top (fullscreen has no status bar).
+  - Tests: `tests/features/pwa.test.ts` runs the real service worker against a fake cache/network/clock, plus the wake lock, the saved setting, the manifest and icons.
+- Phone checklist (on the GitHub Pages link, after merging):
+  - [ ] Install: Android Chrome menu → "Add to Home screen" / "Install app" (iPhone Safari: Share → "Add to Home Screen"). The icon looks fine on the home screen.
+  - [ ] Opens fullscreen from the icon; nothing hidden under the notch or the home bar.
+  - [ ] Open once with Wi-Fi on, close it, turn Wi-Fi **and** mobile data off, open it from the icon: the board shows, with the game as you left it.
+  - [ ] Keep screen awake on: the screen stays on past the phone's normal timeout. Switch it off: the phone dims as usual. Survives leaving the app and coming back.
+  - [ ] After the next deploy, the installed app picks up the new version (may take one extra open).
 - **Done when:** the app is installed on your phone and opens with Wi-Fi off.
 
 > **End of phase 1:** the complete dashboard on one phone.
