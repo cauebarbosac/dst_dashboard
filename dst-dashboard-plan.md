@@ -10,7 +10,7 @@
 |---|---|---|
 | App type | **Web app, phone-first (portrait)**, installable on the home screen (a "PWA") | One codebase runs on phones, tablets and laptops. No app store needed. |
 | Frontend | **React + TypeScript + Vite** | Standard, well known to Claude Code. TypeScript catches mistakes, a bit like Python type hints that are actually enforced. |
-| Shared live board | **Hosted service, free tier**, added in a later phase. Proposed: **Firebase (Firestore)**, alternative: Supabase. | Nobody has to run a server. Firestore queues changes while offline and sends them when the connection returns, which helps with your unstable Wi-Fi. Free-tier terms get re-checked at that step. |
+| Shared live board | **Firebase (Firestore + anonymous sign-in), free Spark plan**, decided at M11 (2026-11-22). Project `dst-dashboard-50059`. | Nobody has to run a server. Firestore queues changes while offline and sends them when the connection returns, which helps with your unstable Wi-Fi. Re-checked 2026-11-22: free tier = 50K reads/day, 20K-40K writes/day, no card needed, never paused. Supabase was dropped because free projects pause after a week without activity. |
 | Dev tooling | **Vitest** (tests), **oxlint** (linter, Vite's default), **Prettier** (formatter) | pytest / ruff / black equivalents |
 | Game data | **Hand-written** by us, small curated lists | Full control, no scraping |
 | Images | **Later.** Faces are shown as text (character name/initials + player color ring). | Keeps early steps simple |
@@ -105,8 +105,8 @@ Derived views the UI reads (`board.ts`): `visibleBoard`, `boardQueue`, `unfinish
 | M7 | ✅ done 2026-11-21 | Hold to build (with N checks), Built list with hold to send back, 178 tests green. Phone-checked by the user. Branch `m7-building` pushed, PR opened by Claude. |
 | M8 | ✅ done 2026-11-21 | Season picker, Unfinished business tab, season bar removed from the dock; My claims got the cooking strip and the same two-button dock as the board. 182 tests green. Phone-checked by the user. Branch `m8-seasons` pushed, PR opened by Claude. |
 | M9 | ✅ done 2026-11-21 | Crisis buttons in the dock, red banners (tap to end), crisis cards marked. 190 tests green. Phone-checked by the user. Branch `m9-crisis` pushed, PR opened by Claude. |
-| M10 | 🔨 built 2026-11-22, waiting for phone check | Manifest + icons, service worker (opens offline), keep-screen-awake toggle on Players. 222 tests green. Branch `m10-pwa`. |
-| M11 | ⏭ next | Shared live board. |
+| M10 | ✅ done 2026-11-22 | Manifest + icons, service worker (opens offline), keep-screen-awake toggle on Players. 222 tests green. Installed on the user's phone and opens offline. Merged (PR #11). |
+| M11 | 🔨 built 2026-11-22, sharing checked on laptop + phone (dev server), rest of the checklist after deploy | Shared rooms on Firebase: create / join / invite link, Who are you?, live board, offline strip, server-side first-tap-wins. 251 tests green + 6 live tests against the real project. Branch `m11-shared-board`. |
 
 **Next session starts here:** read this table, then the milestone's section below.
 
@@ -271,11 +271,11 @@ Each milestone is one git branch, merged when its **Done when** list passes, on 
   - The app now leaves room for the notch at the top (fullscreen has no status bar).
   - Tests: `tests/features/pwa.test.ts` runs the real service worker against a fake cache/network/clock, plus the wake lock, the saved setting, the manifest and icons.
 - Phone checklist (on the GitHub Pages link, after merging):
-  - [ ] Install: Android Chrome menu → "Add to Home screen" / "Install app" (iPhone Safari: Share → "Add to Home Screen"). The icon looks fine on the home screen.
-  - [ ] Opens fullscreen from the icon; nothing hidden under the notch or the home bar.
-  - [ ] Open once with Wi-Fi on, close it, turn Wi-Fi **and** mobile data off, open it from the icon: the board shows, with the game as you left it.
-  - [ ] Keep screen awake on: the screen stays on past the phone's normal timeout. Switch it off: the phone dims as usual. Survives leaving the app and coming back.
-  - [ ] After the next deploy, the installed app picks up the new version (may take one extra open).
+  - [x] Install: Android Chrome menu → "Add to Home screen" / "Install app" (iPhone Safari: Share → "Add to Home Screen"). The icon looks fine on the home screen.
+  - [ ] (not reported yet) Opens fullscreen from the icon; nothing hidden under the notch or the home bar.
+  - [x] Open once with Wi-Fi on, close it, turn Wi-Fi **and** mobile data off, open it from the icon: the board shows, with the game as you left it.
+  - [ ] (not reported yet) Keep screen awake on: the screen stays on past the phone's normal timeout. Switch it off: the phone dims as usual. Survives leaving the app and coming back.
+  - [ ] (check at the M11 deploy) After the next deploy, the installed app picks up the new version (may take one extra open).
 - **Done when:** the app is installed on your phone and opens with Wi-Fi off.
 
 > **End of phase 1:** the complete dashboard on one phone.
@@ -287,6 +287,23 @@ Each milestone is one git branch, merged when its **Done when** list passes, on 
 - **Same-tap conflicts:** if two players tap the same slot at the same moment, the first one wins and the other sees it taken. This is enforced on the service side.
 - **Unstable connections:** taps apply instantly on your screen, are sent when the connection is back, and a small "offline" indicator shows meanwhile.
 - N for per-player items = number of players in the room.
+- As built:
+  - **How sharing works** (`src/logic/room.ts`): a room is a **log of taps**. Each tap is stored as an action and stamped with the **server's** clock when it arrives. Every phone replays the log in that order with the same `applyAction` rules, so all phones show the same board. Same-slot conflicts: the tap the server got first claims the slot; the later one finds it taken (no-op), on every phone. The rules (`firestore.rules`) only accept the server's own time and the sender's own id, and the log can't be edited, so nobody can jump the queue.
+  - **Summaries:** every 100 taps, a phone that's online and fully up to date writes a summary of the board into the room (in a transaction, only moving forward). Phones read the summary + the taps after it, not the whole playthrough, to stay far below the free read quota.
+  - **Firebase side** (`src/storage/firebaseRoom.ts`, config in `src/storage/firebaseConfig.ts`): anonymous sign-in gives each phone a permanent id (= its player id). Firestore keeps a copy of the room on the phone (IndexedDB), so the app opens offline, and queues taps until the connection is back. Taps from other phones are checked (`src/storage/actionCodec.ts`) before they reach the rules.
+  - **Rooms last the whole playthrough** (decided by the user): the phone remembers its room and opens straight into it. Codes are a DST creature + 2 digits (`HOUND-76`). Creating a room needs a connection; opening one you've been in doesn't.
+  - **Screens:** start (Create a room / type a code), "Who are you?" (tap your character; `joinRoom` action), board without the player switcher, and the Players screen: room code + 📨 Invite (phone share sheet, or copies the link; opening the link joins), who's playing, Change (your character), hold to remove someone, Keep screen awake, hold to Leave room, hold for **New world** (erases the room for everyone; everyone picks again).
+  - **Offline strip:** "📴 Offline · N taps to send" under the header (board and My claims), shown after 2 s offline so start-up doesn't flash it.
+  - The old single-phone save (`store.ts` loadGame/saveGame) is no longer used by the app; it's kept with its tests. A game saved on the phone before M11 is not moved into a room.
+  - Tests: `tests/features/rooms.test.ts` (codes, joining, server order and conflicts, summaries, checking incoming taps, remembered room). `tests/live/room-live.test.ts` runs two simulated phones against the real Firebase project (`npm run test:live`, not part of `npm test`/CI): ~0.2 s to see each other's taps, same-slot conflict, Wi-Fi drop and reconnect, summaries, and the server refusing cheating. BUG-002 (offline taps hidden after a summary) was caught and fixed this way.
+- Phone checklist (on the GitHub Pages link after merging, or `npm run dev` for a first look):
+  - [ ] Create a room on one phone; the code is easy to read out loud.
+  - [ ] 📨 Invite opens the share sheet; a friend opening the link lands on "Who are you?"; typing the code works too.
+  - [x] Two phones see each other's claims and cooking within about a second. (laptop + phone, dev server)
+  - [ ] Both tap the same slot at once: both phones end up showing the same winner.
+  - [ ] Wi-Fi off on one phone: "Offline" strip appears, taps still show there; Wi-Fi back: the other phone gets them.
+  - [ ] Close and reopen the app: straight back into the room, also with Wi-Fi off.
+  - [ ] Change character, remove a player, Leave room and New world all behave as expected.
 - **Done when:** two phones in the same room see each other's claims and cooking status within about a second, including after one of them briefly loses Wi-Fi.
 
 ### M12 and later (not planned in detail yet)
@@ -328,5 +345,5 @@ New:
 - ~~**K:** how many cards are visible at once, 3 or 4?~~ **3** (`BOARD_SIZE`), decided by the user on the phone (2026-11-21).
 - **Undoing a check:** decided for now (2026-11-21): a mistaken long press is fixed by restoring the item from the Built list (it comes back fresh). Revisit "undo last check" only if it hurts in play.
 - **Long-press time:** 2 s, or shorter (1.5 s)? The hold-to-confirm uses **1.5 s** (`HOLD_MS`, M4); M7's build long press can share it once tried on the phone.
-- **Hosted service:** Firebase or Supabase. Decide at M11 after checking current free-tier terms.
-- **Rooms:** should a room live for the whole world/playthrough and be reused across play sessions?
+- ~~**Hosted service:** Firebase or Supabase.~~ **Firebase** (M11, 2026-11-22), see section 0.
+- ~~**Rooms:** should a room live for the whole world/playthrough?~~ **Yes** (M11, 2026-11-22): one room per world, remembered by each phone; New world clears it.

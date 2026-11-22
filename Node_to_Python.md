@@ -158,6 +158,13 @@ Small syntax crib:
 | **Maskable icon** | An app icon with extra margin, so Android can crop it to a circle or squircle without cutting the drawing. |
 | **Screen wake lock** (`navigator.wakeLock`) | Asks the phone not to dim or lock while the app is in front. The browser drops it when the app goes to the background, so it is asked for again on return. Only works on `https://` (or `localhost`). |
 | **Vite plugin** | A small object with hooks Vite calls during the build (e.g. `closeBundle` = "build finished"). Ours writes `sw.js`. Like a setuptools build hook. |
+| **Firebase / Firestore** | Google's hosted backend. Firestore is its database: *collections* of *documents* (JSON-like). Like a hosted MongoDB you talk to straight from the app, no server code of ours. |
+| **Anonymous sign-in** | Firebase gives each phone a permanent random id without a login screen. Lets the database rules say "only this app's users" and "only as yourself". |
+| **Security rules** (`firestore.rules`) | Checks the database runs on *every* read/write, on Google's side. The app can't skip them. Like permission checks in a Django view, but living in the database. |
+| **Listener** (`onSnapshot`) | "Call me whenever this data changes." The phone gets pushed updates instead of asking repeatedly. Like a callback subscribed to a pub/sub topic. |
+| **Server timestamp** | A time filled in by the server when a write arrives, not by the phone (whose clock can be wrong or faked). We use it to decide who tapped first. |
+| **Transaction** | Read-then-write that only succeeds if nothing changed in between; otherwise it retries. Like `SELECT ... FOR UPDATE` in SQL. |
+| **`useRef`** | A React value kept between redraws that does *not* trigger a redraw when changed. Like an instance attribute on a long-lived object. |
 | **Viewport** | The visible area of the page on a phone. The `<meta name="viewport">` line in `index.html` tells phones not to zoom out. |
 | **ES modules (`"type": "module"`)** | The modern `import`/`export` system. The line in `package.json` says "this project uses it". |
 | **GitHub Pages** | Free static hosting from a GitHub repo. Ours: `https://cauebarbosac.github.io/dst_dashboard/`. |

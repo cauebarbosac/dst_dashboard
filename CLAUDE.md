@@ -33,6 +33,8 @@ Unrelated to any other repo on this machine — don't pull in context, conventio
 - `npm run dev` — dev server
 - `npm test` — run all tests (features + regression)
 - `npm run test:features` / `npm run test:regression` — run one part of the suite
+- `npm run test:live` — live tests against the real Firebase project (not in `npm test`/CI)
+- `firestore.rules` is published by hand: Firebase console → Firestore → Rules → paste → Publish
 - `npm run build` — type-check + production build
 - `npm run lint` — oxlint (like ruff check)
 - `npm run format` — Prettier (like black)
