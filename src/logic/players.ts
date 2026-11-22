@@ -25,8 +25,15 @@ function nextColor(state: GameState): string {
 }
 
 function nextPlayerId(state: GameState): PlayerId {
-  const numbers = state.players.map((p) => Number(p.id.slice(1)))
-  return `p${Math.max(0, ...numbers) + 1}`
+  // Only p1, p2… count; shared-room players have device ids (M11).
+  const numbers = state.players.map((p) =>
+    /^p\d+$/.test(p.id) ? Number(p.id.slice(1)) : 0,
+  )
+  let id: PlayerId
+  let n = Math.max(0, ...numbers)
+  do id = `p${++n}`
+  while (findPlayer(state, id))
+  return id
 }
 
 /** Adds a player with an automatic color ring. Two players may share a character. */
@@ -34,6 +41,28 @@ export function addPlayer(state: GameState, characterId: string): GameState {
   if (!isCharacter(characterId)) return state
   const player = {
     id: nextPlayerId(state),
+    characterId,
+    color: nextColor(state),
+    activity: 'none' as const,
+  }
+  return { ...state, players: [...state.players, player] }
+}
+
+/**
+ * A phone joins a shared room as itself (M11): `playerId` is the phone's
+ * own id. Joining again just changes the character, so re-joining never
+ * makes a second copy of you.
+ */
+export function joinRoom(
+  state: GameState,
+  playerId: PlayerId,
+  characterId: string,
+): GameState {
+  if (!isCharacter(characterId) || playerId === '') return state
+  if (findPlayer(state, playerId))
+    return pickCharacter(state, playerId, characterId)
+  const player = {
+    id: playerId,
     characterId,
     color: nextColor(state),
     activity: 'none' as const,

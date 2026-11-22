@@ -15,6 +15,7 @@ import {
 import { endCrisis, triggerCrisis } from './crises'
 import {
   addPlayer,
+  joinRoom,
   pickCharacter,
   removePlayer,
   toggleCooking,
@@ -27,6 +28,7 @@ import { createGame, type GameState, type PlayerId } from './state'
 export type Action =
   | { type: 'newGame' }
   | { type: 'addPlayer'; characterId: string }
+  | { type: 'joinRoom'; playerId: PlayerId; characterId: string }
   | { type: 'removePlayer'; playerId: PlayerId }
   | { type: 'pickCharacter'; playerId: PlayerId; characterId: string }
   | { type: 'claimSlot'; playerId: PlayerId; itemId: ItemId; slotIndex: number }
@@ -53,6 +55,8 @@ export function applyAction(state: GameState, action: Action): GameState {
       return createGame()
     case 'addPlayer':
       return addPlayer(state, action.characterId)
+    case 'joinRoom':
+      return joinRoom(state, action.playerId, action.characterId)
     case 'removePlayer':
       return removePlayer(state, action.playerId)
     case 'pickCharacter':

@@ -1,5 +1,6 @@
-// The board: season, item cards, and (single-phone phase) the player
-// switcher. Taps are sent as actions; the rules decide what they mean.
+// The board: season, item cards, crisis and cooking controls. Taps are
+// sent as actions; the rules decide what they mean.
+// (M11: the single-phone player switcher is gone; each phone is a player.)
 
 import { useState } from 'react'
 import type { Action } from '../logic/actions'
@@ -9,17 +10,17 @@ import {
   builtListView,
   crisisOptions,
   myClaimsView,
-  playerTags,
   type CardView,
 } from '../logic/view'
 import { CookButton, CookStrip } from './Cooking'
 import { CrisisBanners, CrisisBar } from './Crisis'
-import { ItemCard, PlayerTag } from './ItemCard'
+import { ConnectionStrip, type Connection } from './ConnectionStrip'
+import { ItemCard } from './ItemCard'
 
 type BoardScreenProps = {
   state: GameState
   me: PlayerId
-  onSwitchPlayer: (playerId: PlayerId) => void
+  connection: Connection
   onOpenSetup: () => void
   onOpenClaims: () => void
   onOpenBuilt: () => void
@@ -30,7 +31,7 @@ type BoardScreenProps = {
 export function BoardScreen({
   state,
   me,
-  onSwitchPlayer,
+  connection,
   onOpenSetup,
   onOpenClaims,
   onOpenBuilt,
@@ -38,7 +39,6 @@ export function BoardScreen({
   dispatch,
 }: BoardScreenProps) {
   const board = boardView(state)
-  const players = playerTags(state)
   const amCooking = board.cooks.some((t) => t.playerId === me)
   const promises = myClaimsView(state, me).count
   const builtCount = builtListView(state).length
@@ -105,25 +105,7 @@ export function BoardScreen({
         onEnd={(crisisId) => dispatch({ type: 'endCrisis', crisisId })}
       />
 
-      {/* Single-phone phase only: who is holding the phone right now.
-          Goes away in M11, when each phone is one player. */}
-      {players.length > 1 && (
-        <div className="whoami" role="group" aria-label="You are">
-          <span className="whoami-label">You:</span>
-          {players.map((p) => (
-            <button
-              key={p.playerId}
-              type="button"
-              className="whoami-button"
-              aria-pressed={me === p.playerId}
-              aria-label={p.name}
-              onClick={() => onSwitchPlayer(p.playerId)}
-            >
-              <PlayerTag tag={p} />
-            </button>
-          ))}
-        </div>
-      )}
+      <ConnectionStrip {...connection} />
 
       {/* Everyone sees who's cooking. Only who, not what. */}
       <CookStrip cooks={board.cooks} />

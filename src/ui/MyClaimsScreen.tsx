@@ -13,12 +13,14 @@ import {
   type MyClaimView,
 } from '../logic/view'
 import { CookButton, CookStrip } from './Cooking'
+import { ConnectionStrip, type Connection } from './ConnectionStrip'
 import { CrisisBanners } from './Crisis'
 import { PlayerTag } from './ItemCard'
 
 type MyClaimsScreenProps = {
   state: GameState
   me: PlayerId
+  connection: Connection
   dispatch: (action: Action) => void
   onBack: () => void
 }
@@ -26,6 +28,7 @@ type MyClaimsScreenProps = {
 export function MyClaimsScreen({
   state,
   me,
+  connection,
   dispatch,
   onBack,
 }: MyClaimsScreenProps) {
@@ -53,6 +56,7 @@ export function MyClaimsScreen({
         crises={board.crises}
         onEnd={(crisisId) => dispatch({ type: 'endCrisis', crisisId })}
       />
+      <ConnectionStrip {...connection} />
       <CookStrip cooks={cooks} />
 
       <main className="claims">

@@ -35,7 +35,7 @@ The game is stressful enough. The dashboard must never add to that.
 
 ### Joining a board
 
-- A group shares a board via a **short room code** (e.g. `WOLF-42`), typed once.
+- A group shares a board via a **short room code** (e.g. `WOLF-42`), typed once, or by opening an invite link. The room lasts the whole world/playthrough.
 - After joining, each player **taps their character's face once**. From then on, every tap on that device counts as that player.
 - If two players pick the same character, each player's face gets a **colored ring** so they can be told apart.
 

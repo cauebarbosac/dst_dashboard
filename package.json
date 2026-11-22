@@ -12,9 +12,11 @@
     "test:watch": "vitest",
     "test:features": "vitest run tests/features",
     "test:regression": "vitest run tests/regression --passWithNoTests",
+    "test:live": "vitest run --config vitest.live.config.ts",
     "preview": "vite preview"
   },
   "dependencies": {
+    "firebase": "13.2.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },

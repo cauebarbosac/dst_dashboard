@@ -17,6 +17,7 @@ Run them:
 | `npm run test:features` | only feature tests |
 | `npm run test:regression` | only regression tests |
 | `npm run test:watch` | everything, re-run on every save |
+| `npm run test:live` | the live tests in `tests/live/` against the real Firebase project (M11). Not part of `npm test` or CI; run them after changing the room sync or `firestore.rules`. Each run makes a throwaway room. |
 
 ## Feature tests (`tests/features/`)
 
