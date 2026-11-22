@@ -1,6 +1,8 @@
 // Storage adapter (M4). The app only talks to a `GameStore`; where the data
-// actually lives is hidden behind it. Phase 1 = this phone (localStorage),
-// M11 = a hosted service, with no change to src/logic/.
+// actually lives is hidden behind it. Phase 1 = this phone (localStorage).
+// Since M11 the game itself lives in the shared room (firebaseRoom.ts);
+// this store keeps only the phone's own settings (room, keep awake). The
+// game save/load here is the phase-1 path, kept with its tests.
 //
 // Python analogy: `GameStore` is an abstract base class, and
 // `createLocalStore` returns one concrete implementation.
@@ -21,6 +23,9 @@ export type GameStore = {
   /** "Keep screen awake" (M10), also per device. On unless turned off. */
   loadKeepAwake(): boolean
   saveKeepAwake(on: boolean): void
+  /** The shared room this phone is in (M11), or null. */
+  loadRoom(): string | null
+  saveRoom(code: string | null): void
 }
 
 /** The part of the browser's localStorage we use (easy to fake in tests). */
@@ -32,6 +37,7 @@ export type KeyValueStorage = Pick<
 const GAME_KEY = 'dst-dashboard:game'
 const ME_KEY = 'dst-dashboard:me'
 const KEEP_AWAKE_KEY = 'dst-dashboard:keep-awake'
+const ROOM_KEY = 'dst-dashboard:room'
 /** Bump when the saved shape changes; older saves are then ignored. */
 export const SAVE_VERSION = 1
 
@@ -80,6 +86,12 @@ export function createLocalStore(storage: KeyValueStorage | null): GameStore {
     },
     saveKeepAwake(on) {
       write(KEEP_AWAKE_KEY, on ? 'on' : 'off')
+    },
+    loadRoom() {
+      return read(ROOM_KEY)
+    },
+    saveRoom(code) {
+      write(ROOM_KEY, code)
     },
   }
 }

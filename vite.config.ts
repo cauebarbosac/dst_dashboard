@@ -41,6 +41,11 @@ export default defineConfig({
   plugins: [react(), serviceWorker()],
   // GitHub Pages serves the app from /dst_dashboard/, not from the site root.
   base: '/dst_dashboard/',
+  build: {
+    // Firebase (M11) makes the app ~900 kB (~270 kB zipped). Fine here: it's
+    // downloaded once and then kept offline by the service worker.
+    chunkSizeWarningLimit: 1000,
+  },
   server: {
     // Listen on the home network too, so the phone can open the dev server.
     host: true,

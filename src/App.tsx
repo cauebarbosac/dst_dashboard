@@ -1,103 +1,153 @@
-import { useEffect, useReducer, useState } from 'react'
-import { applyAction } from './logic/actions'
-import { resolveMe } from './logic/players'
-import { createGame, type PlayerId } from './logic/state'
+import { useEffect, useState } from 'react'
+import { myPlayer } from './logic/room'
 import { playerTags } from './logic/view'
 import { browserStorage, createLocalStore } from './storage/store'
 import { BoardScreen } from './ui/BoardScreen'
 import { BuiltScreen } from './ui/BuiltScreen'
 import { MyClaimsScreen } from './ui/MyClaimsScreen'
+import { JoinScreen, RoomScreen, StatusScreen } from './ui/RoomScreens'
 import { SeasonScreen } from './ui/SeasonScreen'
 import { SetupScreen } from './ui/SetupScreen'
 import { useKeepAwake } from './ui/useKeepAwake'
+import { useRoom } from './ui/useRoom'
 
-// Where the game is saved. Phase 1: this phone. M11 swaps this one line
-// for the hosted service.
+// This phone's own settings (which room, keep awake). The game itself
+// lives in the shared room (M11, src/storage/firebaseRoom.ts).
 const store = createLocalStore(browserStorage())
 
 export default function App() {
-  // The game: loaded from the phone if there's a save, otherwise new.
-  // useReducer: React keeps `state` and redraws whenever `dispatch(action)`
-  // produces a new one through applyAction.
-  const [state, dispatch] = useReducer(
-    applyAction,
-    undefined,
-    () => store.loadGame() ?? createGame(),
-  )
-  // useState: single values React remembers between redraws.
-  const [rememberedMe, setMe] = useState<PlayerId | null>(() => store.loadMe())
+  const session = useRoom(store)
   const [screen, setScreen] = useState<
-    'setup' | 'board' | 'claims' | 'built' | 'season'
-  >(() => (state.players.length === 0 ? 'setup' : 'board'))
-  const me = resolveMe(state, rememberedMe)
+    'board' | 'players' | 'claims' | 'built' | 'season'
+  >('board')
   // M10: keep the screen awake while the app is open (toggle on Players).
   const [keepAwake, setKeepAwake] = useState(() => store.loadKeepAwake())
   const keepAwakeSupported = useKeepAwake(keepAwake)
-
-  // useEffect: after every change, save. ([state] = "when state changes".)
-  useEffect(() => store.saveGame(state), [state])
-  useEffect(() => store.saveMe(me), [me])
   useEffect(() => store.saveKeepAwake(keepAwake), [keepAwake])
 
-  if (screen === 'setup' || me === null) {
+  if (session.phase === 'signing-in')
+    return session.failed ? (
+      <StatusScreen
+        title="📴 No connection"
+        text="The very first start needs the internet, once. After that the app works offline."
+        action={{ label: 'Try again', onClick: session.retry }}
+      />
+    ) : (
+      <StatusScreen title="🔥 Starting…" />
+    )
+
+  if (session.phase === 'no-room')
+    return (
+      <RoomScreen
+        busy={session.busy}
+        error={session.error}
+        onCreate={session.create}
+        onJoin={session.join}
+      />
+    )
+
+  const { code, view, send, leave } = session
+  const leaveRoom = () => {
+    leave()
+    setScreen('board')
+  }
+
+  if (!view || view.status === 'loading')
+    return (
+      <StatusScreen
+        title={`Opening ${code}…`}
+        text="Joining a room the first time needs the internet."
+        secondary={{ label: '← Other room', onClick: leaveRoom }}
+      />
+    )
+
+  if (view.status === 'missing')
+    return (
+      <StatusScreen
+        title={`No room ${code}`}
+        text="Check the code with your friends, or create a new room."
+        action={{ label: 'OK', onClick: leaveRoom }}
+      />
+    )
+
+  const { state } = view
+  const me = myPlayer(state, session.deviceId)
+  const players = playerTags(state)
+
+  if (me === null)
+    return (
+      <JoinScreen
+        code={code}
+        players={players}
+        onPick={(characterId) =>
+          send({ type: 'joinRoom', playerId: session.deviceId, characterId })
+        }
+        onLeave={leaveRoom}
+      />
+    )
+
+  const connection = { online: view.online, waiting: view.waiting }
+  const toBoard = () => setScreen('board')
+
+  if (screen === 'players')
     return (
       <SetupScreen
-        players={playerTags(state)}
-        onAdd={(characterId) => dispatch({ type: 'addPlayer', characterId })}
-        onRemove={(playerId) => dispatch({ type: 'removePlayer', playerId })}
-        onNewGame={() => dispatch({ type: 'newGame' })}
-        onDone={() => setScreen('board')}
+        roomCode={code}
+        players={players}
+        me={me}
+        myCharacter={state.players.find((p) => p.id === me)?.characterId}
+        onPickCharacter={(characterId) =>
+          send({ type: 'pickCharacter', playerId: me, characterId })
+        }
+        onRemove={(playerId) => send({ type: 'removePlayer', playerId })}
+        onNewGame={() => {
+          send({ type: 'newGame' })
+          toBoard()
+        }}
+        onLeave={leaveRoom}
+        onDone={toBoard}
         keepAwake={keepAwake}
         keepAwakeSupported={keepAwakeSupported}
         onToggleKeepAwake={() => setKeepAwake((on) => !on)}
       />
     )
-  }
 
-  if (screen === 'season') {
+  if (screen === 'season')
     return (
       <SeasonScreen
         state={state}
         onPick={(season) => {
-          dispatch({ type: 'setSeason', season })
-          setScreen('board')
+          send({ type: 'setSeason', season })
+          toBoard()
         }}
-        onBack={() => setScreen('board')}
+        onBack={toBoard}
       />
     )
-  }
 
-  if (screen === 'built') {
-    return (
-      <BuiltScreen
-        state={state}
-        dispatch={dispatch}
-        onBack={() => setScreen('board')}
-      />
-    )
-  }
+  if (screen === 'built')
+    return <BuiltScreen state={state} dispatch={send} onBack={toBoard} />
 
-  if (screen === 'claims') {
+  if (screen === 'claims')
     return (
       <MyClaimsScreen
         state={state}
         me={me}
-        dispatch={dispatch}
-        onBack={() => setScreen('board')}
+        connection={connection}
+        dispatch={send}
+        onBack={toBoard}
       />
     )
-  }
 
   return (
     <BoardScreen
       state={state}
       me={me}
-      onSwitchPlayer={setMe}
-      onOpenSetup={() => setScreen('setup')}
+      connection={connection}
+      onOpenSetup={() => setScreen('players')}
       onOpenClaims={() => setScreen('claims')}
       onOpenBuilt={() => setScreen('built')}
       onOpenSeason={() => setScreen('season')}
-      dispatch={dispatch}
+      dispatch={send}
     />
   )
 }

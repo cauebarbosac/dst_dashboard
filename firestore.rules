@@ -1,0 +1,62 @@
+rules_version = '2';
+
+// Security rules for the shared board (M11). Firebase checks these on the
+// server for every read and write; the app can't skip them.
+// To change them: Firebase console → Firestore Database → Rules → paste
+// this whole file → Publish. (Keep this file and the console in sync.)
+//
+// Layout:
+//   rooms/{CODE}                 the room: last summary of the board
+//   rooms/{CODE}/actions/{id}    every tap since, stamped with server time
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    match /rooms/{code} {
+      // Anyone with the app (signed in, even anonymously) who knows the code.
+      allow get: if signedIn();
+      allow list: if false; // no browsing other people's rooms
+
+      // A new room: a code like MOOSE-42, with an empty summary.
+      allow create: if signedIn()
+        && code.matches('^[A-Z]{2,10}-[0-9]{2}$')
+        && request.resource.data.keys().hasOnly(['version', 'summary', 'upTo', 'createdAt'])
+        && request.resource.data.version == 1
+        && request.resource.data.summary is string
+        && request.resource.data.summary.size() < 200000
+        && request.resource.data.upTo == null
+        && request.resource.data.createdAt == request.time;
+
+      // A newer summary only moves forward in time, never back.
+      allow update: if signedIn()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['summary', 'upTo'])
+        && request.resource.data.summary is string
+        && request.resource.data.summary.size() < 200000
+        && request.resource.data.upTo is timestamp
+        && request.resource.data.upTo <= request.time
+        && (resource.data.upTo == null || request.resource.data.upTo > resource.data.upTo);
+
+      allow delete: if false;
+
+      match /actions/{actionId} {
+        allow read: if signedIn();
+
+        // A tap: stamped with the server's own clock (this is what makes
+        // "first one wins" fair), signed by the phone that sent it.
+        allow create: if signedIn()
+          && request.resource.data.keys().hasOnly(['action', 'by', 'at'])
+          && request.resource.data.by == request.auth.uid
+          && request.resource.data.at == request.time
+          && request.resource.data.action is map
+          && request.resource.data.action.type is string;
+
+        // The log is append-only.
+        allow update, delete: if false;
+      }
+    }
+  }
+}

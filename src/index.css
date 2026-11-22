@@ -93,32 +93,16 @@ button:active {
   font-size: 1.5rem;
 }
 
-/* Player switcher: single-phone phase only (goes away in M11). */
-.whoami {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px;
-  padding: 0 16px 4px;
-}
-
-.whoami-label {
-  color: var(--muted);
-  font-size: 0.85rem;
-  margin-right: 2px;
-}
-
-.whoami-button {
-  min-width: var(--touch);
-  min-height: var(--touch);
+/* Offline indicator (M11): a slim strip under the header. */
+.connection-strip {
+  margin: 0 16px 4px;
+  padding: 6px 12px;
   border-radius: 999px;
-  border: 2px solid transparent;
-  opacity: 0.45;
-}
-
-.whoami-button[aria-pressed='true'] {
-  border-color: var(--accent);
-  opacity: 1;
+  background: var(--panel);
+  border: 1px solid var(--panel-edge);
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: center;
 }
 
 .board {
@@ -852,4 +836,115 @@ button:active {
 
 .card.crisis {
   border-color: var(--crisis);
+}
+
+/* ── Shared rooms (M11) ── */
+.room-button {
+  width: 100%;
+  min-height: 72px;
+  border-radius: 12px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.join-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.join-form .primary-button {
+  min-height: 64px;
+  padding: 0 24px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.code-input {
+  min-height: 64px;
+  min-width: 0;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 2px solid var(--panel-edge);
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.code-input::placeholder {
+  color: var(--muted);
+  opacity: 0.5;
+}
+
+.room-error {
+  color: var(--ring-red);
+  font-weight: 600;
+}
+
+.status-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.room-code {
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+
+.room-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.room-code-big {
+  flex: 1;
+  font-size: 1.8rem;
+}
+
+.share-button,
+.change-button {
+  min-height: var(--touch);
+  padding: 0 16px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.you-label {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.player-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.setting-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.leave-button {
+  min-height: 64px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.character-button[aria-pressed='true'] {
+  border-color: var(--accent);
 }
