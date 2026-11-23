@@ -73,7 +73,7 @@ describe('M4 removing a player', () => {
     game = claimBuilder(game, 'p1', 'crock-pot')
     game = removePlayer(game, 'p1')
     expect(cardOf(game, 'crock-pot')).toMatchObject({
-      claims: { 1: 'p2' },
+      claims: { 1: ['p2'] },
       builder: null,
     })
   })

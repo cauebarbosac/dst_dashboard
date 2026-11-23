@@ -3,7 +3,7 @@
 // role, HOLD = built (one check for items needed N times).
 
 import type { CSSProperties } from 'react'
-import type { CardView, Tag } from '../logic/view'
+import type { CardView, SlotView, Tag } from '../logic/view'
 import { HOLD_MS } from './holdToConfirm'
 import { usePressOrHold } from './usePressOrHold'
 
@@ -67,12 +67,19 @@ export function ItemCard({
           <li key={slot.slotIndex}>
             <button
               type="button"
-              className={slot.claimedBy ? 'slot claimed' : 'slot'}
+              className={slot.claimedBy.length > 0 ? 'slot claimed' : 'slot'}
               onClick={() => onTapSlot(slot.slotIndex)}
+              aria-label={slotLabel(slot)}
             >
               <span className="slot-name">{slot.name}</span>
               <span className="slot-amount">×{slot.amount}</span>
-              {slot.claimedBy && <PlayerTag tag={slot.claimedBy} />}
+              {slot.claimedBy.length > 0 && (
+                <span className="claimers">
+                  {slot.claimedBy.map((tag) => (
+                    <PlayerTag key={tag.playerId} tag={tag} />
+                  ))}
+                </span>
+              )}
             </button>
           </li>
         ))}
@@ -81,6 +88,16 @@ export function ItemCard({
       {card.checks && <Checks {...card.checks} />}
     </article>
   )
+}
+
+/** What a screen reader says for a slot, and what a tap will do. */
+function slotLabel(slot: SlotView): string {
+  const what = `${slot.name} ×${slot.amount}`
+  const who = slot.claimedBy.map((t) => t.label).join(' and ')
+  if (slot.mine) return `${what}, claimed by ${who}. Tap to release yours`
+  if (slot.full) return `${what}, claimed by ${who}`
+  if (who) return `${what}, claimed by ${who}. Tap to help`
+  return `${what}. Tap to claim`
 }
 
 /** N check slots for items needed once per player. */

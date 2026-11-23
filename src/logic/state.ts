@@ -25,8 +25,11 @@ export type Player = {
  */
 export type Card = {
   builder: PlayerId | null
-  /** Ingredient slot index → the player who claimed it. */
-  claims: Partial<Record<number, PlayerId>>
+  /**
+   * Ingredient slot index → who claimed it, first claimer first
+   * (1 or 2 players, see MAX_CLAIMERS). A slot nobody claimed has no key.
+   */
+  claims: Partial<Record<number, PlayerId[]>>
   /** Long presses done so far (for items needed N times). */
   checks: number
   built: boolean

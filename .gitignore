@@ -26,3 +26,7 @@ CLAUDE.local.md
 .DS_Store
 Thumbs.db
 *.local
+
+# Game art (Klei's copyright): never in the public repo or on GitHub Pages.
+# Uploaded to Firebase for room members only (M12).
+private-assets/

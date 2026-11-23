@@ -17,7 +17,7 @@ const SM = 'science-machine'
 describe('M2 claiming ingredients', () => {
   it('tapping an empty slot claims it', () => {
     const game = claimSlot(gameWith('wilson'), 'p1', SM, 1)
-    expect(cardOf(game, SM).claims).toEqual({ 1: 'p1' })
+    expect(cardOf(game, SM).claims).toEqual({ 1: ['p1'] })
   })
 
   it('tapping your own claim releases it', () => {
@@ -26,16 +26,17 @@ describe('M2 claiming ingredients', () => {
     expect(cardOf(game, SM).claims).toEqual({})
   })
 
-  it('a slot already claimed by someone else stays theirs (first claim wins)', () => {
+  // Rule changed in M12a: a second player can join a claimed slot.
+  it('a second player can join a claimed slot (first claimer stays first)', () => {
     let game = claimSlot(gameWith('wilson', 'willow'), 'p1', SM, 0)
     game = claimSlot(game, 'p2', SM, 0)
-    expect(cardOf(game, SM).claims).toEqual({ 0: 'p1' })
+    expect(cardOf(game, SM).claims).toEqual({ 0: ['p1', 'p2'] })
   })
 
   it("you can't release someone else's claim", () => {
     let game = claimSlot(gameWith('wilson', 'willow'), 'p1', SM, 0)
     game = releaseSlot(game, 'p2', SM, 0)
-    expect(cardOf(game, SM).claims).toEqual({ 0: 'p1' })
+    expect(cardOf(game, SM).claims).toEqual({ 0: ['p1'] })
   })
 
   it('claiming the same slot twice changes nothing', () => {
@@ -54,7 +55,7 @@ describe('M2 claiming ingredients', () => {
     game = claimSlot(game, 'p2', SM, 2)
     game = claimBuilder(game, 'p3', SM)
     expect(cardOf(game, SM)).toMatchObject({
-      claims: { 1: 'p1', 2: 'p2' },
+      claims: { 1: ['p1'], 2: ['p2'] },
       builder: 'p3',
     })
   })
@@ -62,7 +63,7 @@ describe('M2 claiming ingredients', () => {
   it('one player can claim several slots of the same item', () => {
     let game = claimSlot(gameWith('wilson'), 'p1', SM, 0)
     game = claimSlot(game, 'p1', SM, 2)
-    expect(cardOf(game, SM).claims).toEqual({ 0: 'p1', 2: 'p1' })
+    expect(cardOf(game, SM).claims).toEqual({ 0: ['p1'], 2: ['p1'] })
   })
 
   it('a slot that does not exist is ignored', () => {
@@ -112,7 +113,7 @@ describe('M2 builder claim', () => {
     game = claimSlot(game, 'p1', SM, 0)
     expect(cardOf(game, SM)).toMatchObject({
       builder: 'p1',
-      claims: { 0: 'p1' },
+      claims: { 0: ['p1'] },
     })
   })
 })
@@ -120,7 +121,7 @@ describe('M2 builder claim', () => {
 describe('M3 tapping (one tap toggles a claim)', () => {
   it('tapping an empty slot claims it', () => {
     const game = tapSlot(gameWith('wilson'), 'p1', SM, 0)
-    expect(cardOf(game, SM).claims).toEqual({ 0: 'p1' })
+    expect(cardOf(game, SM).claims).toEqual({ 0: ['p1'] })
   })
 
   it('tapping my own claim releases it', () => {
@@ -129,9 +130,18 @@ describe('M3 tapping (one tap toggles a claim)', () => {
     expect(cardOf(game, SM).claims).toEqual({})
   })
 
-  it("tapping someone else's claim does nothing", () => {
-    const game = tapSlot(gameWith('wilson', 'willow'), 'p1', SM, 0)
-    expect(tapSlot(game, 'p2', SM, 0)).toBe(game)
+  // Rule changed in M12a: tapping a slot with one claimer joins it.
+  it("tapping someone else's claim joins it", () => {
+    let game = tapSlot(gameWith('wilson', 'willow'), 'p1', SM, 0)
+    game = tapSlot(game, 'p2', SM, 0)
+    expect(cardOf(game, SM).claims).toEqual({ 0: ['p1', 'p2'] })
+  })
+
+  it('tapping a full slot (two others) does nothing', () => {
+    let game = gameWith('wilson', 'willow', 'wendy')
+    game = tapSlot(game, 'p1', SM, 0)
+    game = tapSlot(game, 'p2', SM, 0)
+    expect(tapSlot(game, 'p3', SM, 0)).toBe(game)
   })
 
   it('tapping the item claims, then releases, the builder role', () => {

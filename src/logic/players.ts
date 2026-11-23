@@ -101,7 +101,9 @@ export function removePlayer(state: GameState, playerId: PlayerId): GameState {
     const itemId = id as ItemId
     if (!card) continue
     const claims = Object.fromEntries(
-      Object.entries(card.claims).filter(([, who]) => who !== playerId),
+      Object.entries(card.claims)
+        .map(([slot, who]) => [slot, who?.filter((id) => id !== playerId)])
+        .filter(([, who]) => who !== undefined && who.length > 0),
     )
     const builder = card.builder === playerId ? null : card.builder
     const done =

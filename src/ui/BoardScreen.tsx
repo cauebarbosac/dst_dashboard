@@ -38,7 +38,7 @@ export function BoardScreen({
   onOpenSeason,
   dispatch,
 }: BoardScreenProps) {
-  const board = boardView(state)
+  const board = boardView(state, undefined, me)
   const amCooking = board.cooks.some((t) => t.playerId === me)
   const promises = myClaimsView(state, me).count
   const builtCount = builtListView(state).length

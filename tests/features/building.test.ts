@@ -61,7 +61,7 @@ describe('M2 building and quantities', () => {
     game = claimBuilder(game, 'p2', BACKPACK)
     game = markBuilt(game, BACKPACK) // 1 of 2
     expect(cardOf(game, BACKPACK)).toMatchObject({
-      claims: { 0: 'p1' },
+      claims: { 0: ['p1'] },
       builder: 'p2',
       checks: 1,
     })

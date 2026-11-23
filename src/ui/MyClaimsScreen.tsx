@@ -41,7 +41,7 @@ export function MyClaimsScreen({
   const amCooking = cooks.some((t) => t.playerId === me)
 
   const isMine = (itemId: MyClaimView['itemId'], slotIndex: number) =>
-    cardView(state, itemId).slots[slotIndex]?.claimedBy?.playerId === me
+    cardView(state, itemId, me).slots[slotIndex]?.mine === true
   const amBuilder = (itemId: MyClaimView['itemId']) =>
     cardView(state, itemId).builder?.playerId === me
 

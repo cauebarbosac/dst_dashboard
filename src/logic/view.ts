@@ -16,6 +16,7 @@ import {
   visibleBoard,
 } from './board'
 import { requiredChecks } from './building'
+import { MAX_CLAIMERS } from './claims'
 import { cardOf, findPlayer, type GameState, type PlayerId } from './state'
 
 /** A claim drawn as a name tag in the player's color ring. */
@@ -25,7 +26,12 @@ export type SlotView = {
   slotIndex: number
   name: string
   amount: number
-  claimedBy: Tag | null
+  /** Who claimed it, first claimer first (empty when free). */
+  claimedBy: Tag[]
+  /** True when I'm one of the claimers. */
+  mine: boolean
+  /** True when no one else can join (MAX_CLAIMERS reached). */
+  full: boolean
 }
 
 export type CardView = {
@@ -92,7 +98,15 @@ export function playerTags(state: GameState): PlayerEntry[] {
   }))
 }
 
-export function cardView(state: GameState, itemId: ItemId): CardView {
+/**
+ * `me` is the player looking at the card (null = nobody picked yet); it
+ * only affects each slot's `mine`.
+ */
+export function cardView(
+  state: GameState,
+  itemId: ItemId,
+  me: PlayerId | null = null,
+): CardView {
   const item = ITEMS[itemId]
   const card = cardOf(state, itemId)
   const required = requiredChecks(state, itemId)
@@ -101,26 +115,37 @@ export function cardView(state: GameState, itemId: ItemId): CardView {
     name: item.name,
     station: item.station === 'hand' ? null : STATIONS[item.station].name,
     builder: tagOf(state, card.builder),
-    slots: item.ingredients.map((ing, slotIndex) => ({
-      slotIndex,
-      name: ing.name,
-      amount: ing.amount,
-      claimedBy: tagOf(state, card.claims[slotIndex]),
-    })),
+    slots: item.ingredients.map((ing, slotIndex) => {
+      const claimers = card.claims[slotIndex] ?? []
+      return {
+        slotIndex,
+        name: ing.name,
+        amount: ing.amount,
+        claimedBy: claimers
+          .map((id) => tagOf(state, id))
+          .filter((t): t is Tag => t !== null),
+        mine: me !== null && claimers.includes(me),
+        full: claimers.length >= MAX_CLAIMERS,
+      }
+    }),
     checks: required > 1 ? { done: card.checks, required } : null,
     crisisIcon: crisisNeeding(state, itemId)?.icon ?? null,
   }
 }
 
-export function boardView(state: GameState, size?: number): BoardView {
+export function boardView(
+  state: GameState,
+  size?: number,
+  me: PlayerId | null = null,
+): BoardView {
   const visible = visibleBoard(state, size)
   return {
     seasonName: SEASON_NAMES[state.season],
     seasonIcon: SEASON_ICONS[state.season],
-    cards: visible.map((id) => cardView(state, id)),
+    cards: visible.map((id) => cardView(state, id, me)),
     hiddenCount: boardQueue(state).length - visible.length,
     cooks: cooks(state).map((p) => tagOf(state, p.id) as Tag),
-    unfinished: unfinishedItems(state).map((id) => cardView(state, id)),
+    unfinished: unfinishedItems(state).map((id) => cardView(state, id, me)),
     crises: activeCrisesLatestFirst(state).map(({ id, name, icon }) => ({
       id,
       name,

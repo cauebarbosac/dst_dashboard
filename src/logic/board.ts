@@ -95,7 +95,7 @@ export function myClaims(state: GameState, playerId: PlayerId): MyClaim[] {
     if (card.built) continue
     const slots = ITEMS[itemId].ingredients
       .map((ingredient, slotIndex) => ({ slotIndex, ingredient }))
-      .filter(({ slotIndex }) => card.claims[slotIndex] === playerId)
+      .filter(({ slotIndex }) => card.claims[slotIndex]?.includes(playerId))
     const builder = card.builder === playerId
     if (builder || slots.length > 0) result.push({ itemId, builder, slots })
   }

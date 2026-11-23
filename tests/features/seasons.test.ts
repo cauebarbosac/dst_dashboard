@@ -48,7 +48,7 @@ describe('M2 seasons and Unfinished business', () => {
     game = setSeason(game, 'winter')
     expect(unfinishedItems(game)).toContain('backpack')
     expect(cardOf(game, 'backpack')).toMatchObject({
-      claims: { 0: 'p1' },
+      claims: { 0: ['p1'] },
       checks: 1,
     })
   })
@@ -116,7 +116,7 @@ describe('M8 season control and Unfinished business on screen', () => {
       'log-suit',
     ])
     // claims are kept, so the card still shows who promised what
-    expect(unfinished[1].slots[0].claimedBy?.label).toBe('WIL')
+    expect(unfinished[1].slots[0].claimedBy[0]?.label).toBe('WIL')
   })
 
   it('building an item from Unfinished business removes it from the tab', () => {

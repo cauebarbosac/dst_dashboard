@@ -239,7 +239,17 @@ button:active {
   opacity: 0.85; /* semi-transparent face on the claim */
   min-width: 34px;
   height: 34px;
+}
+
+/* One or two claimers side by side; a second one overlaps the first a bit. */
+.claimers {
+  display: flex;
+  justify-content: center;
   margin-top: 4px;
+}
+
+.claimers .tag + .tag {
+  margin-left: -8px;
 }
 
 .checks {

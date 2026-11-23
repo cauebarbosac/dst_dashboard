@@ -14,9 +14,30 @@ describe('M3 card view (what a card shows)', () => {
       station: 'Science Machine',
       builder: null,
       slots: [
-        { slotIndex: 0, name: 'Boards', amount: 4, claimedBy: null },
-        { slotIndex: 1, name: 'Cut Stone', amount: 2, claimedBy: null },
-        { slotIndex: 2, name: 'Electrical Doodad', amount: 2, claimedBy: null },
+        {
+          slotIndex: 0,
+          name: 'Boards',
+          amount: 4,
+          claimedBy: [],
+          mine: false,
+          full: false,
+        },
+        {
+          slotIndex: 1,
+          name: 'Cut Stone',
+          amount: 2,
+          claimedBy: [],
+          mine: false,
+          full: false,
+        },
+        {
+          slotIndex: 2,
+          name: 'Electrical Doodad',
+          amount: 2,
+          claimedBy: [],
+          mine: false,
+          full: false,
+        },
       ],
       checks: null,
       crisisIcon: null,
@@ -45,11 +66,9 @@ describe('M3 card view (what a card shows)', () => {
 
   it("a claimed slot shows the claimer's tag and color ring", () => {
     const game = claimSlot(gameWith('wilson', 'willow'), 'p2', 'crock-pot', 1)
-    expect(cardView(game, 'crock-pot').slots[1].claimedBy).toEqual({
-      playerId: 'p2',
-      label: 'WLO',
-      color: 'blue',
-    })
+    expect(cardView(game, 'crock-pot').slots[1].claimedBy).toEqual([
+      { playerId: 'p2', label: 'WLO', color: 'blue' },
+    ])
   })
 
   it('the builder shows as a tag on the item', () => {

@@ -156,7 +156,7 @@ describe('M4 checking a loaded save', () => {
     }
     expect(parseGame(game)?.cards['crock-pot']).toEqual({
       builder: null,
-      claims: { 0: 'p1' },
+      claims: { 0: ['p1'] },
       checks: 0,
       built: false,
     })
