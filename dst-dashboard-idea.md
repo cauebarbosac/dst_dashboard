@@ -59,11 +59,15 @@ Claiming is the "task tag" system: putting your face on something means "I'm tak
 | Action | Result |
 |---|---|
 | Tap an empty **ingredient slot** | You claim it. The slot grays out and your character's face appears on it, semi-transparent. |
-| Tap **your own** claim | The claim is released immediately. |
+| Tap an ingredient slot **someone else** claimed | You join them: up to **two players** can claim the same ingredient (to help, or because you're near it). Both faces show, side by side. It shows in both players' My claims. |
+| Tap a slot that **two others** claimed | Nothing: it's full. |
+| Tap **your own** claim | The claim is released immediately. The other claimer, if any, keeps theirs. |
 | Tap the **item itself** (top of the card) | You claim the **builder** role. Your face shows on the item. |
 
 - A claim always means the **full amount** of that ingredient for the build. There are no partial claims and no numbers to pick.
 - One item can be split across several players: player 1 brings the Logs, player 2 the Rocks, player 3 builds.
+- The **builder** role stays one player per item. (Two builders may make sense later for items needed N times.)
+- Two per ingredient for now because two faces still fit in a slot on a phone; more would need a new way to draw them.
 
 ### Building and quantities
 

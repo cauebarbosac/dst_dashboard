@@ -7,8 +7,12 @@ import { SEASON_LISTS } from '../data/seasons'
 import type { Crisis, Ingredient } from '../data/types'
 import { cardOf, type GameState, type Player, type PlayerId } from './state'
 
-/** How many cards are visible at once. To be tuned on the phone (3 or 4). */
-export const BOARD_SIZE = 3
+/**
+ * How many cards are visible at once: the whole season list, up to 6
+ * (user request 2026-11-23, was 3). Crisis items can push it past 6; the
+ * rest wait behind as "+N more waiting".
+ */
+export const BOARD_SIZE = 6
 
 const ALL_ITEM_IDS = Object.keys(ITEMS) as ItemId[]
 
@@ -95,7 +99,7 @@ export function myClaims(state: GameState, playerId: PlayerId): MyClaim[] {
     if (card.built) continue
     const slots = ITEMS[itemId].ingredients
       .map((ingredient, slotIndex) => ({ slotIndex, ingredient }))
-      .filter(({ slotIndex }) => card.claims[slotIndex] === playerId)
+      .filter(({ slotIndex }) => card.claims[slotIndex]?.includes(playerId))
     const builder = card.builder === playerId
     if (builder || slots.length > 0) result.push({ itemId, builder, slots })
   }

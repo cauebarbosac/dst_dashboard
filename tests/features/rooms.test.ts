@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { Action } from '../../src/logic/actions'
+import { applyAction, type Action } from '../../src/logic/actions'
 import { requiredChecks } from '../../src/logic/building'
 import { addPlayer, joinRoom } from '../../src/logic/players'
 import {
@@ -39,8 +39,14 @@ const tap = (playerId: string, slotIndex = 0): Action => ({
   itemId: 'science-machine',
   slotIndex,
 })
-const claimant = (state: ReturnType<typeof room>, slot = 0) =>
-  cardOf(state, 'science-machine').claims[slot]
+const claimers = (state: ReturnType<typeof room>, slot = 0) =>
+  cardOf(state, 'science-machine').claims[slot] ?? []
+
+// Conflicts (rule since M12a: two claimers per slot). Cy already holds the
+// first spot on slot 0, so Ana and Ben race for the last one.
+const CY = 'device-cy'
+const oneSpotLeft = () => applyAction(joinRoom(room(), CY, 'wendy'), tap(CY))
+const lastSpot = (state: ReturnType<typeof room>) => claimers(state)[1]
 
 // ─────────────────────────────────────────────────────────────────────────
 describe('M11 room codes', () => {
@@ -137,52 +143,57 @@ describe('M11 joining a room', () => {
 
 // ─────────────────────────────────────────────────────────────────────────
 describe('M11 same-tap conflicts: the server decides who was first', () => {
+  it('two taps on a free slot: both get in, in server order', () => {
+    const log = [entry(tap(BEN), 2000), entry(tap(ANA), 1000)]
+    expect(claimers(replay(room(), null, log))).toEqual([ANA, BEN])
+  })
+
   it('two taps on one slot: the first one the server got wins', () => {
     const log = [entry(tap(BEN), 2000), entry(tap(ANA), 1000)]
-    expect(claimant(replay(room(), null, log))).toBe(ANA)
+    expect(lastSpot(replay(oneSpotLeft(), null, log))).toBe(ANA)
   })
 
   it('every phone agrees, whatever order the taps reached it in', () => {
     const a = entry(tap(ANA), 1000)
     const b = entry(tap(BEN), 1001)
-    expect(claimant(replay(room(), null, [a, b]))).toBe(ANA)
-    expect(claimant(replay(room(), null, [b, a]))).toBe(ANA)
+    expect(lastSpot(replay(oneSpotLeft(), null, [a, b]))).toBe(ANA)
+    expect(lastSpot(replay(oneSpotLeft(), null, [b, a]))).toBe(ANA)
   })
 
   it('the loser’s tap does nothing (it does not steal or release the slot)', () => {
     const log = [entry(tap(ANA), 1000), entry(tap(BEN), 1001)]
-    const state = replay(room(), null, log)
-    expect(claimant(state)).toBe(ANA)
-    expect(state.players).toHaveLength(2)
+    const state = replay(oneSpotLeft(), null, log)
+    expect(claimers(state)).toEqual([CY, ANA])
+    expect(state.players).toHaveLength(3)
   })
 
   it('my tap shows right away, before the server has it', () => {
     const log = [entry(tap(ANA), null, 5)]
-    expect(claimant(replay(room(), null, log))).toBe(ANA)
+    expect(lastSpot(replay(oneSpotLeft(), null, log))).toBe(ANA)
   })
 
   it('…and if someone else got there first, it turns into theirs once confirmed', () => {
     const mine = entry(tap(ANA), null, 5)
-    const before = replay(room(), null, [mine])
-    expect(claimant(before)).toBe(ANA)
+    const before = replay(oneSpotLeft(), null, [mine])
+    expect(lastSpot(before)).toBe(ANA)
     // Ben's tap reached the server first; mine arrives later.
-    const after = replay(room(), null, [
+    const after = replay(oneSpotLeft(), null, [
       { ...mine, at: 3000 },
       entry(tap(BEN), 2000),
     ])
-    expect(claimant(after)).toBe(BEN)
+    expect(lastSpot(after)).toBe(BEN)
   })
 
   it('taps still on their way keep the order they were made in', () => {
     // Both offline on this phone: Ana tapped first (sentAt 1), Ben second.
     const log = [entry(tap(BEN), null, 2), entry(tap(ANA), null, 1)]
-    expect(claimant(replay(room(), null, log))).toBe(ANA)
+    expect(lastSpot(replay(oneSpotLeft(), null, log))).toBe(ANA)
   })
 
   it('equal server stamps are broken the same way everywhere', () => {
     const a = entry(tap(ANA), 1000, 0, 'aaa')
     const b = entry(tap(BEN), 1000, 0, 'bbb')
-    expect(claimant(replay(room(), null, [b, a]))).toBe(ANA)
+    expect(lastSpot(replay(oneSpotLeft(), null, [b, a]))).toBe(ANA)
   })
 })
 

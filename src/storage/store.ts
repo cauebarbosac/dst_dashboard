@@ -12,6 +12,7 @@ import { CRISES } from '../data/crises'
 import { ITEMS } from '../data/items'
 import { SEASON_ORDER } from '../data/seasons'
 import type { Season } from '../data/types'
+import { MAX_CLAIMERS } from '../logic/claims'
 import type { Card, GameState, Player, PlayerId } from '../logic/state'
 
 export type GameStore = {
@@ -134,8 +135,16 @@ function parseCard(x: unknown, playerIds: Set<string>): Card | null {
   if (!isObject(claims)) return null
   const validClaims: Card['claims'] = {}
   for (const [slot, who] of Object.entries(claims)) {
-    if (typeof who === 'string' && playerIds.has(who))
-      validClaims[Number(slot)] = who
+    // Saves from before two claimers (M12a) hold one id, not a list.
+    const list: unknown[] = Array.isArray(who) ? who : [who]
+    const claimers = [
+      ...new Set(
+        list.filter(
+          (id): id is string => typeof id === 'string' && playerIds.has(id),
+        ),
+      ),
+    ].slice(0, MAX_CLAIMERS)
+    if (claimers.length > 0) validClaims[Number(slot)] = claimers
   }
   return {
     builder:

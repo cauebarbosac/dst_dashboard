@@ -8,8 +8,22 @@ import {
 } from './state'
 
 // A claim means "I'm taking care of this": always the full amount of an
-// ingredient, never a partial one. First claim wins; nobody can take or
-// release someone else's claim.
+// ingredient, never a partial one. Up to MAX_CLAIMERS players can claim the
+// same ingredient (the second one is helping, or happens to be near it).
+// The first MAX_CLAIMERS taps win; nobody can take or release someone
+// else's claim. The builder role stays one player.
+
+/** How many players can claim one ingredient slot. */
+export const MAX_CLAIMERS = 2
+
+/** Who claimed a slot, first claimer first (empty when nobody). */
+export function claimersOf(
+  state: GameState,
+  itemId: ItemId,
+  slotIndex: number,
+): PlayerId[] {
+  return cardOf(state, itemId).claims[slotIndex] ?? []
+}
 
 function canClaim(
   state: GameState,
@@ -40,10 +54,12 @@ export function claimSlot(
   if (!canClaim(state, playerId, itemId) || !isSlot(itemId, slotIndex))
     return state
   const card = cardOf(state, itemId)
-  if (card.claims[slotIndex] !== undefined) return state // taken (even by me)
+  const claimers = card.claims[slotIndex] ?? []
+  if (claimers.includes(playerId)) return state // already mine
+  if (claimers.length >= MAX_CLAIMERS) return state // full
   return withCard(state, itemId, {
     ...card,
-    claims: { ...card.claims, [slotIndex]: playerId },
+    claims: { ...card.claims, [slotIndex]: [...claimers, playerId] },
   })
 }
 
@@ -55,9 +71,12 @@ export function releaseSlot(
 ): GameState {
   if (!(itemId in ITEMS)) return state
   const card = cardOf(state, itemId)
-  if (card.claims[slotIndex] !== playerId) return state // not mine
+  const claimers = card.claims[slotIndex] ?? []
+  if (!claimers.includes(playerId)) return state // not mine
+  const rest = claimers.filter((id) => id !== playerId)
   const claims = { ...card.claims }
-  delete claims[slotIndex]
+  if (rest.length > 0) claims[slotIndex] = rest
+  else delete claims[slotIndex]
   return withCard(state, itemId, { ...card, claims })
 }
 
@@ -85,7 +104,10 @@ export function releaseBuilder(
 
 // ── One-tap toggles (what a tap on the screen means) ──
 
-/** Tap a slot: empty → I claim it; mine → I release it; someone else's → nothing. */
+/**
+ * Tap a slot: mine → I release it; room left (fewer than MAX_CLAIMERS) →
+ * I join; full with others → nothing.
+ */
 export function tapSlot(
   state: GameState,
   playerId: PlayerId,
@@ -93,7 +115,7 @@ export function tapSlot(
   slotIndex: number,
 ): GameState {
   if (!(itemId in ITEMS)) return state
-  return cardOf(state, itemId).claims[slotIndex] === playerId
+  return claimersOf(state, itemId, slotIndex).includes(playerId)
     ? releaseSlot(state, playerId, itemId, slotIndex)
     : claimSlot(state, playerId, itemId, slotIndex)
 }

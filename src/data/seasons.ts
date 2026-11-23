@@ -28,8 +28,16 @@ export const SEASON_LISTS: Record<Season, ItemId[]> = {
     'ice-box',
     'backpack',
     'log-suit',
+    'fire-pit', // moved from winter (2026-11-23)
+    'bucket-o-poop', // added 2026-11-23
+    'chest', // added 2026-11-23
   ],
-  winter: ['winter-hat', 'puffy-vest', 'thermal-stone', 'fire-pit'],
-  spring: ['umbrella', 'rain-coat', 'lightning-rod'],
-  summer: ['ice-flingomatic', 'endothermic-fire', 'floral-shirt'],
+  winter: ['winter-hat', 'puffy-vest', 'thermal-stone', 'beefalo-hat'], // Beefalo Hat added 2026-11-23
+  spring: ['umbrella', 'rain-coat', 'lightning-rod', 'birdcage'], // Birdcage added 2026-11-23
+  summer: [
+    'ice-flingomatic',
+    'endothermic-fire',
+    'floral-shirt',
+    'pretty-parasol',
+  ], // Pretty Parasol added 2026-11-23
 }

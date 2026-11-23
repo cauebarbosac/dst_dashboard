@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { markBuilt } from '../../src/logic/building'
 import { claimBuilder, claimSlot } from '../../src/logic/claims'
 import { removePlayer, toggleCooking } from '../../src/logic/players'
+import { triggerCrisis } from '../../src/logic/crises'
 import { setSeason } from '../../src/logic/seasons'
 import { boardView, cardView, playerTags } from '../../src/logic/view'
 import { gameWith } from './helpers'
@@ -14,9 +15,30 @@ describe('M3 card view (what a card shows)', () => {
       station: 'Science Machine',
       builder: null,
       slots: [
-        { slotIndex: 0, name: 'Boards', amount: 4, claimedBy: null },
-        { slotIndex: 1, name: 'Cut Stone', amount: 2, claimedBy: null },
-        { slotIndex: 2, name: 'Electrical Doodad', amount: 2, claimedBy: null },
+        {
+          slotIndex: 0,
+          name: 'Boards',
+          amount: 4,
+          claimedBy: [],
+          mine: false,
+          full: false,
+        },
+        {
+          slotIndex: 1,
+          name: 'Cut Stone',
+          amount: 2,
+          claimedBy: [],
+          mine: false,
+          full: false,
+        },
+        {
+          slotIndex: 2,
+          name: 'Electrical Doodad',
+          amount: 2,
+          claimedBy: [],
+          mine: false,
+          full: false,
+        },
       ],
       checks: null,
       crisisIcon: null,
@@ -45,11 +67,9 @@ describe('M3 card view (what a card shows)', () => {
 
   it("a claimed slot shows the claimer's tag and color ring", () => {
     const game = claimSlot(gameWith('wilson', 'willow'), 'p2', 'crock-pot', 1)
-    expect(cardView(game, 'crock-pot').slots[1].claimedBy).toEqual({
-      playerId: 'p2',
-      label: 'WLO',
-      color: 'blue',
-    })
+    expect(cardView(game, 'crock-pot').slots[1].claimedBy).toEqual([
+      { playerId: 'p2', label: 'WLO', color: 'blue' },
+    ])
   })
 
   it('the builder shows as a tag on the item', () => {
@@ -64,7 +84,7 @@ describe('M3 card view (what a card shows)', () => {
 
 describe('M3 board view', () => {
   it('shows the season name and the visible cards in order', () => {
-    const view = boardView(gameWith('wilson'))
+    const view = boardView(gameWith('wilson'), 3) // the top 3, in order
     expect(view.seasonName).toBe('Autumn')
     expect(view.cards.map((c) => c.itemId)).toEqual([
       'science-machine',
@@ -73,19 +93,36 @@ describe('M3 board view', () => {
     ])
   })
 
+  // Rule changed 2026-11-23: BOARD_SIZE 3 → 6, so a whole season fits and
+  // only crisis items can be hidden.
+  it('a season of 6 or fewer fits whole: nothing hidden (winter has 4)', () => {
+    const game = setSeason(gameWith('wilson'), 'winter')
+    expect(boardView(game).hiddenCount).toBe(0)
+  })
+
   it('counts the items hidden behind the visible cards', () => {
-    expect(boardView(gameWith('wilson')).hiddenCount).toBe(3) // autumn has 6
+    // Autumn has 9 (since 2026-11-23): 6 shown + 3 waiting.
+    expect(boardView(gameWith('wilson')).hiddenCount).toBe(3)
+    // Hound wave adds 2 new items (Log Suit is already in autumn): 11 → 6 + 5.
+    const game = triggerCrisis(gameWith('wilson'), 'hound-wave')
+    expect(boardView(game).cards).toHaveLength(6)
+    expect(boardView(game).hiddenCount).toBe(5)
   })
 
   it('nothing hidden when the list is shorter than the board', () => {
     const view = boardView(setSeason(gameWith('wilson'), 'spring'))
-    expect(view.cards).toHaveLength(3)
+    expect(view.cards).toHaveLength(4) // spring has 4 since 2026-11-23
     expect(view.hiddenCount).toBe(0)
   })
 
   it('an empty board when everything is built', () => {
     let game = setSeason(gameWith('wilson'), 'spring')
-    for (const id of ['umbrella', 'rain-coat', 'lightning-rod'] as const)
+    for (const id of [
+      'umbrella',
+      'rain-coat',
+      'lightning-rod',
+      'birdcage', // spring since 2026-11-23
+    ] as const)
       game = markBuilt(game, id)
     const view = boardView(game)
     expect(view).toMatchObject({
@@ -97,7 +134,7 @@ describe('M3 board view', () => {
       crises: [],
     })
     // the game started in autumn, so autumn's items wait in Unfinished business
-    expect(view.unfinished).toHaveLength(6)
+    expect(view.unfinished).toHaveLength(9) // autumn has 9 since 2026-11-23
   })
 })
 

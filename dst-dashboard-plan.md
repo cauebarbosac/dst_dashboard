@@ -11,6 +11,7 @@
 | App type | **Web app, phone-first (portrait)**, installable on the home screen (a "PWA") | One codebase runs on phones, tablets and laptops. No app store needed. |
 | Frontend | **React + TypeScript + Vite** | Standard, well known to Claude Code. TypeScript catches mistakes, a bit like Python type hints that are actually enforced. |
 | Shared live board | **Firebase (Firestore + anonymous sign-in), free Spark plan**, decided at M11 (2026-11-22). Project `dst-dashboard-50059`. | Nobody has to run a server. Firestore queues changes while offline and sends them when the connection returns, which helps with your unstable Wi-Fi. Re-checked 2026-11-22: free tier = 50K reads/day, 20K-40K writes/day, no card needed, never paused. Supabase was dropped because free projects pause after a week without activity. |
+| Images (M12) | **Firestore documents, readable only by players who joined a room.** Not in the git repo, not on GitHub Pages (decided 2026-11-23). | The art is Klei's; the repo and the Pages site are public, so the images stay out of both. Firebase Storage would be the usual place, but it now needs the paid Blaze plan (a card on file); about 70 small webp images (2-12 KB) fit in a few Firestore documents on the free plan. Firestore's offline cache (already on since M11) keeps them on the phone after the first load. |
 | Dev tooling | **Vitest** (tests), **oxlint** (linter, Vite's default), **Prettier** (formatter) | pytest / ruff / black equivalents |
 | Game data | **Hand-written** by us, small curated lists | Full control, no scraping |
 | Images | **Later.** Faces are shown as text (character name/initials + player color ring). | Keeps early steps simple |
@@ -60,7 +61,7 @@ The most important rule is that **all game rules live in plain functions with no
 - `activeCrises`: ordered list, latest last
 - `cards`: **one card per item** (an item never shows twice), created on first touch. A missing card means "fresh":
   - builder (player id or none)
-  - slot claims `{ slotIndex → playerId }`
+  - slot claims `{ slotIndex → [playerId, …] }`: up to `MAX_CLAIMERS` (2) players, first claimer first (M12a). Saves from before M12a (one id per slot) are converted on load.
   - checks done (for N-quantity items)
   - built: yes/no
 - **Unfinished business is derived, not stored:** items from earlier seasons in `seasonsSeen` that aren't built and aren't on the board now. So they keep their claims, and if a crisis or the season lists them again they go straight back to the board.
@@ -70,7 +71,7 @@ The most important rule is that **all game rules live in plain functions with no
 All in `src/logic/`, sent through `applyAction(state, action)` (`actions.ts`). An action that doesn't apply (taken slot, unknown player, already built…) returns the state unchanged.
 
 - `addPlayer` (with automatic color) / `pickCharacter`
-- `claimSlot` / `releaseSlot` (first claim wins; only your own claim can be released)
+- `claimSlot` / `releaseSlot` (up to 2 claimers per slot since M12a; the first 2 taps win; only your own claim can be released)
 - `claimBuilder` / `releaseBuilder` (one builder per item)
 - `markBuilt` (one check; finishes the card when all checks are done, then clears its claims)
 - `restoreFromBuilt` (the card comes back fresh)
@@ -85,7 +86,7 @@ Derived views the UI reads (`board.ts`): `visibleBoard`, `boardQueue`, `unfinish
 1. Items from active crises, **latest crisis first**.
 2. Then the current season's list, in order.
 3. Skip items that are built, and list each item only once (at its highest position).
-4. Show the **top K cards** (`BOARD_SIZE`, 3 for now, to be tuned on the phone); the rest is hidden.
+4. Show the **top K cards** (`BOARD_SIZE` = 6 since 2026-11-23, was 3): the whole season list fits; only crisis items can push some out of view. The rest is hidden ("+N more waiting").
 
 ---
 
@@ -106,7 +107,9 @@ Derived views the UI reads (`board.ts`): `visibleBoard`, `boardQueue`, `unfinish
 | M8 | ✅ done 2026-11-21 | Season picker, Unfinished business tab, season bar removed from the dock; My claims got the cooking strip and the same two-button dock as the board. 182 tests green. Phone-checked by the user. Branch `m8-seasons` pushed, PR opened by Claude. |
 | M9 | ✅ done 2026-11-21 | Crisis buttons in the dock, red banners (tap to end), crisis cards marked. 190 tests green. Phone-checked by the user. Branch `m9-crisis` pushed, PR opened by Claude. |
 | M10 | ✅ done 2026-11-22 | Manifest + icons, service worker (opens offline), keep-screen-awake toggle on Players. 222 tests green. Installed on the user's phone and opens offline. Merged (PR #11). |
-| M11 | 🔨 built 2026-11-22, sharing checked on laptop + phone (dev server), rest of the checklist after deploy | Shared rooms on Firebase: create / join / invite link, Who are you?, live board, offline strip, server-side first-tap-wins. 251 tests green + 6 live tests against the real project. Branch `m11-shared-board`. |
+| M11 | ✅ done 2026-11-22 | Merged (PR #12) and deployed. Accepted by the user after the phone check. Shared rooms on Firebase: create / join / invite link, Who are you?, live board, offline strip, server-side first-tap-wins. 251 tests green + 6 live tests against the real project. Branch `m11-shared-board`. |
+| M12a | 🔨 built 2026-11-23, phone check pending | Two claimers per ingredient slot (`MAX_CLAIMERS` = 2), builder stays one. Old saves and room summaries converted on load. 274 tests green + 6 live tests. Branch `m12a-two-claimers`. |
+| M12 | 🔨 built 2026-11-23 (steps 1-5); rules published, 66 pictures uploaded, 7 live tests green; PR open, phone check pending | Faces in the rings, item and ingredient pictures on cards and in My claims, faces in the character picker; text when a picture is missing. Board shows the season up to 6 cards. 5 new items, Fire Pit → autumn. Firestore `art/*` readable by room members only (`members/{uid}`). 295 tests green. Next: shrink pictures on upload (items doc 676 of 900 KB). Branch `m12-images`, built on top of `m12a-two-claimers` (PR #13). |
 
 **Next session starts here:** read this table, then the milestone's section below.
 
@@ -125,10 +128,10 @@ Each milestone is one git branch, merged when its **Done when** list passes, on 
 ### M1: Hand-written game data
 - Write `src/data/` files for about 25 items, 4 seasons and 4 crises, the station list, and **all** DST characters (names + short tags).
 - Agreed lists (2026-11-20). Recipes checked on dontstarve.wiki.gg (DST versions):
-  - **Autumn:** Science Machine, Alchemy Engine, Crock Pot, Ice Box, Backpack, Log Suit
-  - **Winter:** Winter Hat, Puffy Vest, Thermal Stone, Fire Pit
-  - **Spring:** Umbrella, Rain Coat, Lightning Rod
-  - **Summer:** Ice Flingomatic, Endothermic Fire, Floral Shirt
+  - **Autumn:** Science Machine, Alchemy Engine, Crock Pot, Ice Box, Backpack, Log Suit, Fire Pit (moved from winter 2026-11-23), Bucket-o-poop (added 2026-11-23: Manure ×3, Bone Shards ×2, Log ×4, Alchemy Engine), Chest (added 2026-11-23: Boards ×3, Science Machine)
+  - **Winter:** Winter Hat, Puffy Vest, Thermal Stone, Beefalo Hat (added 2026-11-23: Beefalo Wool ×8, Beefalo Horn ×1, Science Machine, per player)
+  - **Spring:** Umbrella, Rain Coat, Lightning Rod, Birdcage (added 2026-11-23: Papyrus ×2, Gold Nugget ×6, Seeds ×2, Alchemy Engine)
+  - **Summer:** Ice Flingomatic, Endothermic Fire, Floral Shirt, Pretty Parasol (added 2026-11-23: Twigs ×4, Cut Grass ×3, Petals ×6, by hand, per player)
   - 🐕 **Hound wave:** Log Suit, Football Helmet, Tooth Trap
   - 🥶 **Freezing:** Fire Pit, Thermal Stone, Winter Hat
   - 🍖 **Starvation:** Crock Pot, Drying Rack, Bird Trap
@@ -306,8 +309,71 @@ Each milestone is one git branch, merged when its **Done when** list passes, on 
   - [ ] Change character, remove a player, Leave room and New world all behave as expected.
 - **Done when:** two phones in the same room see each other's claims and cooking status within about a second, including after one of them briefly loses Wi-Fi.
 
-### M12 and later (not planned in detail yet)
-- Images: character faces and item icons (assets kept out of the public repo)
+### M12a: Two claimers per ingredient (small branch before M12)
+- User request 2026-11-23: claim a Rocks slot someone already claimed, to help or because I'm near it, and see it in My claims.
+- Rule (`src/logic/claims.ts`): a slot holds up to `MAX_CLAIMERS` = 2 players, first claimer first. Tap: mine → release (the other stays); one other claimer → I join; two others → nothing. The builder stays one player (two builders may make sense later for N-times items).
+- Rooms: the conflict rule is the same replay, so the first 2 taps the server got win; the third finds it full. No change to `firestore.rules`.
+- Saving: old saves and room summaries hold one id per slot; `parseGame` turns them into a list of one (and drops unknown players, duplicates and extras).
+- View: `SlotView.claimedBy` is a list of tags; `mine` and `full` tell the UI what a tap will do. The slot shows both rings side by side, overlapping a little.
+- Tests: `tests/features/two-claimers.test.ts`; the old one-claimer tests were updated on purpose (rule change), and the M11 conflict tests now race for the last spot.
+- Phone checklist:
+  - [ ] Two rings fit in a slot without pushing the card taller or cutting the name.
+  - [ ] Joining someone's claim and releasing mine each take one tap; theirs stays.
+  - [ ] A full slot (two others) does nothing when tapped.
+  - [ ] Both players see the shared slot in My claims.
+  - [ ] In a room on two phones: both claim the same slot, both phones show the same two faces in the same order.
+- **Done when:** the checklist passes on the phone.
+
+### M12: Images (planned 2026-11-23)
+Goal: faces instead of name tags, item and ingredient icons on the cards. Text stays as the fallback whenever an image is missing or hasn't loaded, so the app never breaks because of art.
+
+**Where the files live**
+- Source files: `private-assets/characters/` and `private-assets/items/` (git-ignored; never committed, never in `public/`, never on Pages). File names as downloaded from the wiki, e.g. `Wilson_Portrait.webp`, `Cut_Grass_Dropped.webp`.
+- Image key: the name in lowercase with dashes, without `_Portrait` / `_Dropped`: `wilson`, `wx-78`, `cut-grass`, `crock-pot`. Characters match their `id`; items and ingredients match their **name** (ingredients have no id), so `Cut Grass` → `cut-grass`. Crises later use their id.
+- In Firebase: collection `art`, one document per group (`art/characters`, `art/items`, later `art/crises`), each `{ key → "data:image/webp;base64,…" }`. That's 2-3 reads per phone, ever (the offline cache keeps them). A Firestore document can hold up to 1 MB; the upload script refuses to write one bigger than 900 KB, and the group is split if that ever happens.
+
+**Who can see them**
+- `firestore.rules`: `art/*` can be read only by a signed-in phone that has joined a room. Joining writes a small `members/{uid}` marker (only your own uid, only for a room that exists). Nobody can write `art` from the app.
+- Honest limit: anyone who gets a room code and opens the app can see the art. It isn't public, can't be found by search engines and isn't in the repo, which is what we want for a hobby project. It is not a vault.
+- Not in a room (local game on one phone): text tags as today. (If that hurts, a later step can keep the last downloaded set on the phone.)
+
+**Steps (rules + tests first, UI second)**
+1. **Image keys** (`src/logic/art.ts`, pure): `artKey(name)` and the "what does this card/tag need" helpers. Tests: names with spaces, hyphens and digits (`WX-78`), every character/item/ingredient in the data gets a unique key.
+2. **Upload script** (`scripts/upload-art.mjs`, run by hand like `python scripts/x.py`): reads `private-assets/`, turns file names into keys, warns about files that match nothing and lists what's missing, builds the group documents and writes them with the Firebase Admin SDK. The admin key (`private-assets/service-account.json`) is downloaded from the Firebase console and stays git-ignored. Also prints coverage, e.g. "items 21/52".
+3. **Rules**: `members/{uid}` written on join, `art/*` read rule; published by hand as usual. Live test: a phone that never joined a room can't read `art`, one that joined can.
+4. **Loading** (`src/storage/art.ts`): after joining a room, read the `art` documents once and hand the UI a `key → image URL` map (empty map = text everywhere). Tests with a fake loader: missing documents, a missing key, offline.
+5. **UI**: `PlayerTag` shows the face inside the color ring (the ring stays, so two Wilsons can still be told apart); `alt` text = character name. Card header gets the item icon next to the name; each ingredient slot gets its icon above the name. Then crises (emoji until their images exist).
+6. Phone check, then decide whether the slot can drop the ingredient name text once icons are there (more room for the two faces).
+- As built (2026-11-23):
+  - Keys and the upload packing are pure (`src/logic/art.ts`: `artKey`, `fileArtKey`, `neededArt`, `packArt`, `playerFaces`); checking what Firebase returns is `src/storage/art.ts` (only `data:image/webp|png|jpeg;base64,…`). Tests: `tests/features/art.test.ts`. Apostrophes are dropped (`Hound's Tooth` → `hounds-tooth`).
+  - Every item's key equals its id (tested), so items and pictures can't drift apart.
+  - Upload: `npm run art:check` (report only) and `npm run art:upload` (`scripts/upload-art.ts`, run with `tsx`; dev dependencies `tsx` and `firebase-admin`). It replaces each group document whole, so deleting a file locally removes it online too.
+  - App: `rooms.loadArt(code)` reads the art documents; if refused, it writes `members/{uid}` for the room and reads again. Never fails: no pictures = text. `useRoom` loads them once per room; `App` hands them to every screen through a React context (`src/ui/useArt.ts`).
+  - Views (`src/logic/view.ts`) didn't change: the UI works out keys from names (`artKey(name)`) and faces from `playerFaces(state)`, so no old test had to change.
+  - Live test (`npm run test:live`): a fresh phone can't read `art`, can't mark itself a member of a room that doesn't exist or mark another phone, can't write `art`; after joining a real room it can read.
+- Your steps to switch it on:
+  1. Publish `firestore.rules` (console → Firestore → Rules → paste → Publish).
+  2. Console → Project settings → Service accounts → **Generate new private key** → save as `private-assets/service-account.json`.
+  3. `npm run art:upload`.
+  4. `npm run test:live` (7 tests).
+- Also in this branch (user requests 2026-11-23): My claims shows the item's picture next to its name and the ingredient picture in each row; `BOARD_SIZE` 3 → 6; Fire Pit moved from winter to autumn; Bucket-o-poop and Chest added to autumn (autumn now 9: 6 shown, 3 waiting); Beefalo Hat → winter, Birdcage → spring, Pretty Parasol → summer. Picture file names: the wiki's `NNpx-` prefix and `_Build` suffix are dropped automatically. 66 pictures uploaded (10 characters, 56 items; items document 676 KB of the 900 KB limit: next step is shrinking pictures on upload, they only show at ≤ 48 px).
+- Phone checklist:
+  - [ ] Faces show in the rings (board slots, builder, cooking strip, My claims, Players), and the ring color is still clear.
+  - [ ] Two faces fit in one slot.
+  - [ ] Item pictures in card headers and ingredient pictures in slots look right; with up to 6 cards the board scrolls under the dock and the thumb still reaches everything.
+  - [ ] My claims: each item shows its picture next to its name, each row shows the ingredient picture, name, ×amount and "tap to release".
+  - [ ] A character or ingredient with no picture shows its text, and nothing looks broken.
+  - [ ] "Who are you?" shows faces.
+  - [ ] Turn Wi-Fi off and reopen the app: the pictures are still there.
+
+**Images still missing** (list from 2026-11-23 morning; `npm run art:check` gives the current one):
+- Characters: Wigfrid, Webber, Winona, Warly, Wortox, Wormwood, Wurt, Walter, Wanda.
+- Items and ingredients: Boards, Cut Stone, Charcoal, Gears, Fire Pit, Ice Flingomatic, Ice, Endothermic Fire, Nitre, Log Suit, Football Helmet, Pig Skin, Winter Hat, Beefalo Wool, Puffy Vest, Winter Koalefant Trunk, Pickaxe, Flint, Rain Coat, Tentacle Spots, Bone Shards, Floral Shirt, Cactus Flower, Tooth Trap, Drying Rack, Telltale Heart, Booster Shot, Rot, Stinger, Honey Poultice, Honey.
+- Uploaded but not used by the data yet: Wagstaff, Birdcage, Chest, Cut Reeds, Pretty Parasol, Seeds (kept; harmless).
+
+- **Done when:** on the phone, in a room, faces show in the rings and icons on the cards; a phone outside any room still works with text; nothing image-related is in git or on Pages.
+
+### Later (not planned in detail yet)
 - Visual details, one by one: colors, red crisis blink, sounds, animations
 - Layouts for tablets, second screens and laptops
 - Editing lists mid-game; partial quantity claims
@@ -342,7 +408,7 @@ From the idea file:
 - ~~What goes in each season and crisis list?~~ First lists agreed in M1 (2026-11-20).
 
 New:
-- ~~**K:** how many cards are visible at once, 3 or 4?~~ **3** (`BOARD_SIZE`), decided by the user on the phone (2026-11-21).
+- ~~**K:** how many cards are visible at once, 3 or 4?~~ **3** (`BOARD_SIZE`), decided by the user on the phone (2026-11-21). **Changed to 6** (2026-11-23, user request): the whole season list, capped at 6; the board scrolls.
 - **Undoing a check:** decided for now (2026-11-21): a mistaken long press is fixed by restoring the item from the Built list (it comes back fresh). Revisit "undo last check" only if it hurts in play.
 - **Long-press time:** 2 s, or shorter (1.5 s)? The hold-to-confirm uses **1.5 s** (`HOLD_MS`, M4); M7's build long press can share it once tried on the phone.
 - ~~**Hosted service:** Firebase or Supabase.~~ **Firebase** (M11, 2026-11-22), see section 0.

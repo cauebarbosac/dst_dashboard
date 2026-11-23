@@ -4,6 +4,8 @@
 // Firestore layout (rules: firestore.rules):
 //   rooms/{CODE}               { version, summary (JSON of the board), upTo, createdAt }
 //   rooms/{CODE}/actions/{id}  { action, by (device id), at (server time) }
+//   members/{deviceId}         { room, at }: this phone joined a room (M12)
+//   art/{group}                { key → picture }: readable by members only
 // The board = the summary + every action stamped after `upTo`, replayed in
 // server order (see src/logic/room.ts).
 //
@@ -19,6 +21,7 @@ import {
   disableNetwork,
   doc,
   enableNetwork,
+  getDoc,
   getDocFromServer,
   initializeFirestore,
   memoryLocalCache,
@@ -36,6 +39,7 @@ import {
   type QueryDocumentSnapshot,
 } from 'firebase/firestore'
 import type { Action } from '../logic/actions'
+import { ART_GROUPS, type ArtMap } from '../logic/art'
 import {
   makeRoomCode,
   nextSummary,
@@ -45,6 +49,7 @@ import {
 } from '../logic/room'
 import { createGame, type GameState, type PlayerId } from '../logic/state'
 import { parseAction } from './actionCodec'
+import { mergeArt } from './art'
 import { firebaseConfig } from './firebaseConfig'
 import { parseGame } from './store'
 
@@ -73,6 +78,11 @@ export type Rooms = {
     deviceId: PlayerId,
     onView: (view: RoomView) => void,
   ): OpenRoom
+  /**
+   * The pictures (M12). Marks this phone as a member of the room first
+   * (only members may read them). Never fails: no pictures = empty map.
+   */
+  loadArt(code: string): Promise<ArtMap>
   /** For tests: pretend the Wi-Fi went away / came back. */
   setOnline(online: boolean): Promise<void>
 }
@@ -254,6 +264,33 @@ export function createFirebaseRooms({
           stopActions?.()
           stopMine()
         },
+      }
+    },
+
+    async loadArt(code) {
+      await auth.authStateReady()
+      const uid = auth.currentUser?.uid
+      if (!uid) return {}
+      const readAll = () =>
+        Promise.all(
+          ART_GROUPS.map((g) =>
+            getDoc(doc(db, 'art', g)).then((d) => d.data()),
+          ),
+        )
+      try {
+        // Already a member (or pictures in this phone's offline copy).
+        return mergeArt(await readAll())
+      } catch {
+        // Not a member yet: say which room we're in, then read again.
+        try {
+          await setDoc(doc(db, 'members', uid), {
+            room: code,
+            at: serverTimestamp(),
+          })
+          return mergeArt(await readAll())
+        } catch {
+          return {}
+        }
       }
     },
 
