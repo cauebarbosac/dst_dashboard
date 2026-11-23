@@ -15,6 +15,7 @@ import {
 import { CookButton, CookStrip } from './Cooking'
 import { ConnectionStrip, type Connection } from './ConnectionStrip'
 import { CrisisBanners } from './Crisis'
+import { ItemPicture } from './art'
 import { PlayerTag } from './ItemCard'
 
 type MyClaimsScreenProps = {
@@ -73,10 +74,14 @@ export function MyClaimsScreen({
 
         {rows.map((item) => (
           <section key={item.itemId} className="claim-card">
+            {/* The item these ingredients are for (M12: with its picture). */}
             <h2 className="claim-item">
-              {item.name}
-              <span className="station">
-                {item.station ? ` · ⚙ ${item.station}` : ' · ✋ By hand'}
+              <ItemPicture name={item.name} className="claim-item-picture" />
+              <span>
+                {item.name}
+                <span className="station">
+                  {item.station ? ` · ⚙ ${item.station}` : ' · ✋ By hand'}
+                </span>
               </span>
             </h2>
 
@@ -108,6 +113,7 @@ export function MyClaimsScreen({
                   })
                 }
               >
+                <ItemPicture name={slot.name} className="claim-picture" />
                 <span className="claim-what">{slot.name}</span>
                 <span className="slot-amount">×{slot.amount}</span>
               </ClaimRow>

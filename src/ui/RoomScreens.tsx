@@ -4,6 +4,7 @@
 import { useState } from 'react'
 import { CHARACTERS } from '../data/characters'
 import type { PlayerEntry } from '../logic/view'
+import { useCharacterFace } from './useArt'
 import { PlayerTag } from './ItemCard'
 
 /** The character buttons, shared by "Who are you?" and the Players screen. */
@@ -24,11 +25,21 @@ export function CharacterGrid({
           aria-pressed={c.id === current}
           onClick={() => onPick(c.id)}
         >
-          <span className="character-tag">{c.tag}</span>
+          <CharacterFace id={c.id} tag={c.tag} />
           <span className="character-name">{c.name}</span>
         </button>
       ))}
     </div>
+  )
+}
+
+/** The character's face (M12), or their short tag when there's no picture. */
+function CharacterFace({ id, tag }: { id: string; tag: string }) {
+  const face = useCharacterFace(id)
+  return face ? (
+    <img className="character-face" src={face} alt="" />
+  ) : (
+    <span className="character-tag">{tag}</span>
   )
 }
 

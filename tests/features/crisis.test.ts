@@ -7,6 +7,8 @@ import { setSeason } from '../../src/logic/seasons'
 import { boardView, cardView, crisisOptions } from '../../src/logic/view'
 import { gameWith } from './helpers'
 
+// BOARD_SIZE went 3 → 6 (2026-11-23); these check the order of the top 3,
+// so they ask for 3 cards explicitly.
 describe('M2 crisis mode', () => {
   it('no crisis at the start', () => {
     expect(topCrisis(gameWith('wilson'))).toBeUndefined()
@@ -14,7 +16,7 @@ describe('M2 crisis mode', () => {
 
   it('triggering a crisis puts its items on top of the board, season items underneath', () => {
     const game = triggerCrisis(gameWith('wilson'), 'teammate-down')
-    expect(visibleBoard(game)).toEqual([
+    expect(visibleBoard(game, 3)).toEqual([
       'telltale-heart',
       'booster-shot',
       'healing-salve',
@@ -33,7 +35,7 @@ describe('M2 crisis mode', () => {
   it('with two crises, the latest one triggered takes the top', () => {
     let game = triggerCrisis(gameWith('wilson'), 'hound-wave')
     game = triggerCrisis(game, 'freezing')
-    expect(visibleBoard(game)).toEqual([
+    expect(visibleBoard(game, 3)).toEqual([
       'fire-pit',
       'thermal-stone',
       'winter-hat',
@@ -51,7 +53,7 @@ describe('M2 crisis mode', () => {
     game = triggerCrisis(game, 'freezing')
     game = endCrisis(game, 'freezing')
     expect(topCrisis(game)?.id).toBe('hound-wave')
-    expect(visibleBoard(game)).toEqual([
+    expect(visibleBoard(game, 3)).toEqual([
       'log-suit',
       'football-helmet',
       'tooth-trap',

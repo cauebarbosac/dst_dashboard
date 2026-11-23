@@ -140,6 +140,7 @@ Small syntax crib:
 | **Pointer events** (`onPointerDown`, `onPointerUp`, …) | Finger/mouse down and up, as separate events (a click is the two together). Needed to measure a *hold*. |
 | **State machine** | A fixed set of phases plus "on event X, go from phase A to B". `src/ui/holdToConfirm.ts` is one, written as a pure function so it's easy to test. |
 | **Custom hook** (`usePressOrHold`) | Your own function starting with `use` that bundles React state + effects for reuse. Like a small mixin you can give to any component. |
+| **Context** (`createContext`, `useContext`, `<X.Provider value=…>`) | A value set once near the top of the app that any component below can read, without passing it through every screen. Like a module-level setting, but scoped to part of the screen tree. The pictures use one (`src/ui/useArt.ts`, M12). |
 
 ## 6. Browser & web-app concepts
 
@@ -178,6 +179,9 @@ Small syntax crib:
 | **Safe area** (`env(safe-area-inset-bottom)`) | Extra space for the phone's home bar / notch, so bottom buttons aren't hidden under it. Needs `viewport-fit=cover` in `index.html`. |
 | **`aria-*` attributes** (`aria-pressed`, `aria-label`) | Hints for screen readers. We also style with them: the selected season button is the one with `aria-pressed="true"`. |
 | **Headless browser** | A browser with no window, driven from the command line, e.g. to take screenshots. Used to check the layout at phone width. |
+| **Data URL** (`data:image/webp;base64,…`) | A whole file written as text inside a string, so an `<img>` can show it without downloading anything. Like `base64.b64encode(open(f, "rb").read())` with a type in front. The pictures are stored this way in Firestore (M12). |
+| **`tsx`** (`tsx scripts/upload-art.ts`) | Runs a TypeScript file directly, like `python script.py`. Used for scripts you run by hand (`npm run art:check`). Not the same as the `.tsx` file extension (TypeScript + JSX). |
+| **Firebase Admin SDK / service account key** | The server-side Firebase library, signed in with a private key file instead of a user. It skips the security rules, so it's used only from your own computer (the picture upload), and the key never goes in git. Like a database superuser password. |
 
 ## 7. Project files, at a glance
 
@@ -194,6 +198,8 @@ Small syntax crib:
 | `src/ui/` | React components (screen pieces), e.g. `ItemCard.tsx` | your templates / view layer |
 | `src/storage/` | saving and loading the game (the storage adapter) | a small persistence module |
 | `tests/features/`, `tests/regression/` | feature tests and bug tests (see `tests/README.md`) | `tests/` |
+| `scripts/` | scripts run by hand (icons, picture upload) | `scripts/` / `manage.py` commands |
+| `private-assets/` | game pictures + Firebase admin key; git-ignored, never published | a local `data/` folder kept out of git |
 | `src/index.css` | global styles | — |
 | `public/` | files copied as-is (icons) | package data files |
 | `vite.config.ts` | bundler, dev server and Vitest settings | `setup.cfg` / `[tool.pytest]` |

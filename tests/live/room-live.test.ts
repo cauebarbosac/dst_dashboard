@@ -10,9 +10,12 @@ import {
   addDoc,
   collection,
   deleteDoc,
+  doc,
+  getDocFromServer,
   getDocs,
   getFirestore,
   serverTimestamp,
+  setDoc,
   Timestamp,
   updateDoc,
 } from 'firebase/firestore'
@@ -213,4 +216,41 @@ describe.skipIf(!LIVE)('M11 live: two phones in one room', () => {
     r.close()
     expect(views.at(-1)?.status).toBe('missing')
   }, 15_000)
+})
+
+describe.skipIf(!LIVE)('M12 live: pictures are for room members only', () => {
+  it('a phone that never joined a room is refused; after joining it can read', async () => {
+    const eve = createFirebaseRooms({ name: 'eve' })
+    const eveId = await eve.deviceId()
+    const db = getFirestore(getApp('eve'))
+    const refused = (p: Promise<unknown>) =>
+      expect(p).rejects.toMatchObject({ code: 'permission-denied' })
+
+    // Fresh anonymous phone, never in a room: no pictures.
+    await refused(getDocFromServer(doc(db, 'art', 'characters')))
+    // Can't mark itself a member of a room that doesn't exist…
+    await refused(
+      setDoc(doc(db, 'members', eveId), {
+        room: 'ZZZZZZ-99',
+        at: serverTimestamp(),
+      }),
+    )
+    // …or mark another phone.
+    await refused(
+      setDoc(doc(db, 'members', 'someone-else'), {
+        room: 'ZZZZZZ-99',
+        at: serverTimestamp(),
+      }),
+    )
+    // Nobody writes pictures from the app.
+    await refused(setDoc(doc(db, 'art', 'characters'), { wilson: 'x' }))
+
+    // Joining a real room makes it a member, and the pictures readable.
+    const code = await eve.createRoom()
+    const art = await eve.loadArt(code)
+    const snap = await getDocFromServer(doc(db, 'art', 'characters'))
+    console.log(
+      `pictures after joining: ${Object.keys(art).length} (art/characters ${snap.exists() ? 'exists' : 'not uploaded yet'})`,
+    )
+  }, 30_000)
 })

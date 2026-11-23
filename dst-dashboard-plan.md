@@ -86,7 +86,7 @@ Derived views the UI reads (`board.ts`): `visibleBoard`, `boardQueue`, `unfinish
 1. Items from active crises, **latest crisis first**.
 2. Then the current season's list, in order.
 3. Skip items that are built, and list each item only once (at its highest position).
-4. Show the **top K cards** (`BOARD_SIZE`, 3 for now, to be tuned on the phone); the rest is hidden.
+4. Show the **top K cards** (`BOARD_SIZE` = 6 since 2026-11-23, was 3): the whole season list fits; only crisis items can push some out of view. The rest is hidden ("+N more waiting").
 
 ---
 
@@ -109,7 +109,7 @@ Derived views the UI reads (`board.ts`): `visibleBoard`, `boardQueue`, `unfinish
 | M10 | ✅ done 2026-11-22 | Manifest + icons, service worker (opens offline), keep-screen-awake toggle on Players. 222 tests green. Installed on the user's phone and opens offline. Merged (PR #11). |
 | M11 | ✅ done 2026-11-22 | Merged (PR #12) and deployed. Accepted by the user after the phone check. Shared rooms on Firebase: create / join / invite link, Who are you?, live board, offline strip, server-side first-tap-wins. 251 tests green + 6 live tests against the real project. Branch `m11-shared-board`. |
 | M12a | 🔨 built 2026-11-23, phone check pending | Two claimers per ingredient slot (`MAX_CLAIMERS` = 2), builder stays one. Old saves and room summaries converted on load. 274 tests green + 6 live tests. Branch `m12a-two-claimers`. |
-| M12 | ⏭ next (planned 2026-11-23) | Images from Firestore, room members only. Plan in the M12 section below. 30 of 70 images in `private-assets/` so far. |
+| M12 | 🔨 built 2026-11-23 (steps 1-5); rules published, 66 pictures uploaded, 7 live tests green; PR open, phone check pending | Faces in the rings, item and ingredient pictures on cards and in My claims, faces in the character picker; text when a picture is missing. Board shows the season up to 6 cards. 5 new items, Fire Pit → autumn. Firestore `art/*` readable by room members only (`members/{uid}`). 295 tests green. Next: shrink pictures on upload (items doc 676 of 900 KB). Branch `m12-images`, built on top of `m12a-two-claimers` (PR #13). |
 
 **Next session starts here:** read this table, then the milestone's section below.
 
@@ -128,10 +128,10 @@ Each milestone is one git branch, merged when its **Done when** list passes, on 
 ### M1: Hand-written game data
 - Write `src/data/` files for about 25 items, 4 seasons and 4 crises, the station list, and **all** DST characters (names + short tags).
 - Agreed lists (2026-11-20). Recipes checked on dontstarve.wiki.gg (DST versions):
-  - **Autumn:** Science Machine, Alchemy Engine, Crock Pot, Ice Box, Backpack, Log Suit
-  - **Winter:** Winter Hat, Puffy Vest, Thermal Stone, Fire Pit
-  - **Spring:** Umbrella, Rain Coat, Lightning Rod
-  - **Summer:** Ice Flingomatic, Endothermic Fire, Floral Shirt
+  - **Autumn:** Science Machine, Alchemy Engine, Crock Pot, Ice Box, Backpack, Log Suit, Fire Pit (moved from winter 2026-11-23), Bucket-o-poop (added 2026-11-23: Manure ×3, Bone Shards ×2, Log ×4, Alchemy Engine), Chest (added 2026-11-23: Boards ×3, Science Machine)
+  - **Winter:** Winter Hat, Puffy Vest, Thermal Stone, Beefalo Hat (added 2026-11-23: Beefalo Wool ×8, Beefalo Horn ×1, Science Machine, per player)
+  - **Spring:** Umbrella, Rain Coat, Lightning Rod, Birdcage (added 2026-11-23: Papyrus ×2, Gold Nugget ×6, Seeds ×2, Alchemy Engine)
+  - **Summer:** Ice Flingomatic, Endothermic Fire, Floral Shirt, Pretty Parasol (added 2026-11-23: Twigs ×4, Cut Grass ×3, Petals ×6, by hand, per player)
   - 🐕 **Hound wave:** Log Suit, Football Helmet, Tooth Trap
   - 🥶 **Freezing:** Fire Pit, Thermal Stone, Winter Hat
   - 🍖 **Starvation:** Crock Pot, Drying Rack, Bird Trap
@@ -344,8 +344,29 @@ Goal: faces instead of name tags, item and ingredient icons on the cards. Text s
 4. **Loading** (`src/storage/art.ts`): after joining a room, read the `art` documents once and hand the UI a `key → image URL` map (empty map = text everywhere). Tests with a fake loader: missing documents, a missing key, offline.
 5. **UI**: `PlayerTag` shows the face inside the color ring (the ring stays, so two Wilsons can still be told apart); `alt` text = character name. Card header gets the item icon next to the name; each ingredient slot gets its icon above the name. Then crises (emoji until their images exist).
 6. Phone check, then decide whether the slot can drop the ingredient name text once icons are there (more room for the two faces).
+- As built (2026-11-23):
+  - Keys and the upload packing are pure (`src/logic/art.ts`: `artKey`, `fileArtKey`, `neededArt`, `packArt`, `playerFaces`); checking what Firebase returns is `src/storage/art.ts` (only `data:image/webp|png|jpeg;base64,…`). Tests: `tests/features/art.test.ts`. Apostrophes are dropped (`Hound's Tooth` → `hounds-tooth`).
+  - Every item's key equals its id (tested), so items and pictures can't drift apart.
+  - Upload: `npm run art:check` (report only) and `npm run art:upload` (`scripts/upload-art.ts`, run with `tsx`; dev dependencies `tsx` and `firebase-admin`). It replaces each group document whole, so deleting a file locally removes it online too.
+  - App: `rooms.loadArt(code)` reads the art documents; if refused, it writes `members/{uid}` for the room and reads again. Never fails: no pictures = text. `useRoom` loads them once per room; `App` hands them to every screen through a React context (`src/ui/useArt.ts`).
+  - Views (`src/logic/view.ts`) didn't change: the UI works out keys from names (`artKey(name)`) and faces from `playerFaces(state)`, so no old test had to change.
+  - Live test (`npm run test:live`): a fresh phone can't read `art`, can't mark itself a member of a room that doesn't exist or mark another phone, can't write `art`; after joining a real room it can read.
+- Your steps to switch it on:
+  1. Publish `firestore.rules` (console → Firestore → Rules → paste → Publish).
+  2. Console → Project settings → Service accounts → **Generate new private key** → save as `private-assets/service-account.json`.
+  3. `npm run art:upload`.
+  4. `npm run test:live` (7 tests).
+- Also in this branch (user requests 2026-11-23): My claims shows the item's picture next to its name and the ingredient picture in each row; `BOARD_SIZE` 3 → 6; Fire Pit moved from winter to autumn; Bucket-o-poop and Chest added to autumn (autumn now 9: 6 shown, 3 waiting); Beefalo Hat → winter, Birdcage → spring, Pretty Parasol → summer. Picture file names: the wiki's `NNpx-` prefix and `_Build` suffix are dropped automatically. 66 pictures uploaded (10 characters, 56 items; items document 676 KB of the 900 KB limit: next step is shrinking pictures on upload, they only show at ≤ 48 px).
+- Phone checklist:
+  - [ ] Faces show in the rings (board slots, builder, cooking strip, My claims, Players), and the ring color is still clear.
+  - [ ] Two faces fit in one slot.
+  - [ ] Item pictures in card headers and ingredient pictures in slots look right; with up to 6 cards the board scrolls under the dock and the thumb still reaches everything.
+  - [ ] My claims: each item shows its picture next to its name, each row shows the ingredient picture, name, ×amount and "tap to release".
+  - [ ] A character or ingredient with no picture shows its text, and nothing looks broken.
+  - [ ] "Who are you?" shows faces.
+  - [ ] Turn Wi-Fi off and reopen the app: the pictures are still there.
 
-**Images still missing** (30 of 70 so far; missing ones just show text):
+**Images still missing** (list from 2026-11-23 morning; `npm run art:check` gives the current one):
 - Characters: Wigfrid, Webber, Winona, Warly, Wortox, Wormwood, Wurt, Walter, Wanda.
 - Items and ingredients: Boards, Cut Stone, Charcoal, Gears, Fire Pit, Ice Flingomatic, Ice, Endothermic Fire, Nitre, Log Suit, Football Helmet, Pig Skin, Winter Hat, Beefalo Wool, Puffy Vest, Winter Koalefant Trunk, Pickaxe, Flint, Rain Coat, Tentacle Spots, Bone Shards, Floral Shirt, Cactus Flower, Tooth Trap, Drying Rack, Telltale Heart, Booster Shot, Rot, Stinger, Honey Poultice, Honey.
 - Uploaded but not used by the data yet: Wagstaff, Birdcage, Chest, Cut Reeds, Pretty Parasol, Seeds (kept; harmless).
@@ -387,7 +408,7 @@ From the idea file:
 - ~~What goes in each season and crisis list?~~ First lists agreed in M1 (2026-11-20).
 
 New:
-- ~~**K:** how many cards are visible at once, 3 or 4?~~ **3** (`BOARD_SIZE`), decided by the user on the phone (2026-11-21).
+- ~~**K:** how many cards are visible at once, 3 or 4?~~ **3** (`BOARD_SIZE`), decided by the user on the phone (2026-11-21). **Changed to 6** (2026-11-23, user request): the whole season list, capped at 6; the board scrolls.
 - **Undoing a check:** decided for now (2026-11-21): a mistaken long press is fixed by restoring the item from the Built list (it comes back fresh). Revisit "undo last check" only if it hurts in play.
 - **Long-press time:** 2 s, or shorter (1.5 s)? The hold-to-confirm uses **1.5 s** (`HOLD_MS`, M4); M7's build long press can share it once tried on the phone.
 - ~~**Hosted service:** Firebase or Supabase.~~ **Firebase** (M11, 2026-11-22), see section 0.

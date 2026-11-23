@@ -13,6 +13,8 @@
     "test:features": "vitest run tests/features",
     "test:regression": "vitest run tests/regression --passWithNoTests",
     "test:live": "vitest run --config vitest.live.config.ts",
+    "art:check": "tsx scripts/upload-art.ts",
+    "art:upload": "tsx scripts/upload-art.ts --upload",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -25,8 +27,10 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "firebase-admin": "^14.5.1",
     "oxlint": "^1.90.0",
     "prettier": "^3.10.1",
+    "tsx": "^4.23.15",
     "typescript": "~7.0.2",
     "vite": "^8.3.6",
     "vitest": "^5.1.1"

@@ -24,7 +24,7 @@ Unrelated to any other repo on this machine — don't pull in context, conventio
   - `npm test` (features + regression) must be green before any commit/merge. If an old test breaks, that's a regression: fix the code, don't edit the test (unless the rule changed on purpose and the docs say so).
 - Storage sits behind an adapter (local first, hosted sync at M11), so switching never touches `src/logic/`.
 - One milestone = one branch. Keep changes small enough to review: rules + tests first, UI second.
-- No images yet (faces = character name/initials + color ring) until the images milestone.
+- Images (M12): game art lives only in `private-assets/` (git-ignored) and in Firestore `art/*` (room members only). Never put it in `public/`, `src/` or git. Every picture has a text fallback.
 
 ## Commands
 
@@ -34,6 +34,7 @@ Unrelated to any other repo on this machine — don't pull in context, conventio
 - `npm test` — run all tests (features + regression)
 - `npm run test:features` / `npm run test:regression` — run one part of the suite
 - `npm run test:live` — live tests against the real Firebase project (not in `npm test`/CI)
+- `npm run art:check` / `npm run art:upload` — check / upload the pictures in `private-assets/` to Firebase (upload needs `private-assets/service-account.json`)
 - `firestore.rules` is published by hand: Firebase console → Firestore → Rules → paste → Publish
 - `npm run build` — type-check + production build
 - `npm run lint` — oxlint (like ruff check)

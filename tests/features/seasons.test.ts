@@ -34,6 +34,9 @@ describe('M2 seasons and Unfinished business', () => {
       'ice-box',
       'backpack',
       'log-suit',
+      'fire-pit', // autumn since 2026-11-23
+      'bucket-o-poop', // added 2026-11-23
+      'chest', // added 2026-11-23
     ])
   })
 
@@ -63,8 +66,9 @@ describe('M2 seasons and Unfinished business', () => {
     let game = setSeason(gameWith('wilson'), 'winter')
     game = setSeason(game, 'spring')
     const unfinished = unfinishedItems(game)
-    expect(unfinished.slice(0, 6)).toEqual(SEASON_LISTS.autumn)
-    expect(unfinished.slice(6)).toEqual(SEASON_LISTS.winter)
+    const autumn = SEASON_LISTS.autumn.length
+    expect(unfinished.slice(0, autumn)).toEqual(SEASON_LISTS.autumn)
+    expect(unfinished.slice(autumn)).toEqual(SEASON_LISTS.winter)
   })
 
   it('an unfinished item pulled up by a crisis shows on the board, not in Unfinished business', () => {
@@ -114,6 +118,9 @@ describe('M8 season control and Unfinished business on screen', () => {
       'ice-box',
       'backpack',
       'log-suit',
+      'fire-pit', // autumn since 2026-11-23
+      'bucket-o-poop', // added 2026-11-23
+      'chest', // added 2026-11-23
     ])
     // claims are kept, so the card still shows who promised what
     expect(unfinished[1].slots[0].claimedBy[0]?.label).toBe('WIL')

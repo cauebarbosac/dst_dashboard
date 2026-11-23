@@ -4,17 +4,27 @@
 
 import type { CSSProperties } from 'react'
 import type { CardView, SlotView, Tag } from '../logic/view'
+import { ItemPicture } from './art'
+import { useFace } from './useArt'
 import { HOLD_MS } from './holdToConfirm'
 import { usePressOrHold } from './usePressOrHold'
 
-/** A player's name tag inside their color ring. */
-export function PlayerTag({ tag }: { tag: Pick<Tag, 'label' | 'color'> }) {
+/**
+ * A player inside their color ring: their face when there's a picture
+ * (M12), otherwise their name tag. The ring tells two Wilsons apart.
+ */
+export function PlayerTag({
+  tag,
+}: {
+  tag: Pick<Tag, 'playerId' | 'label' | 'color'>
+}) {
+  const face = useFace(tag.playerId)
   return (
     <span
-      className="tag"
+      className={face ? 'tag face' : 'tag'}
       style={{ '--ring': `var(--ring-${tag.color})` } as CSSProperties}
     >
-      {tag.label}
+      {face ? <img src={face} alt={tag.label} /> : tag.label}
     </span>
   )
 }
@@ -43,6 +53,7 @@ export function ItemCard({
         {...press.handlers}
         aria-label={`${card.name}: tap to be the builder, hold to mark built`}
       >
+        <ItemPicture name={card.name} className="card-picture" />
         <span className="card-title">
           <span className="card-name">
             {card.crisisIcon && (
@@ -71,6 +82,7 @@ export function ItemCard({
               onClick={() => onTapSlot(slot.slotIndex)}
               aria-label={slotLabel(slot)}
             >
+              <ItemPicture name={slot.name} className="slot-picture" />
               <span className="slot-name">{slot.name}</span>
               <span className="slot-amount">×{slot.amount}</span>
               {slot.claimedBy.length > 0 && (

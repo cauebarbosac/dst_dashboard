@@ -8,6 +8,8 @@ rules_version = '2';
 // Layout:
 //   rooms/{CODE}                 the room: last summary of the board
 //   rooms/{CODE}/actions/{id}    every tap since, stamped with server time
+//   members/{uid}                this phone joined a room (M12)
+//   art/{group}                  the pictures, members only (M12)
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -57,6 +59,28 @@ service cloud.firestore {
         // The log is append-only.
         allow update, delete: if false;
       }
+    }
+
+    // M12: "this phone joined a room". Only your own marker, only for a
+    // room that exists. It's what lets a phone see the pictures.
+    match /members/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow create, update: if signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['room', 'at'])
+        && request.resource.data.room is string
+        && request.resource.data.room.matches('^[A-Z]{2,10}-[0-9]{2}$')
+        && exists(/databases/$(database)/documents/rooms/$(request.resource.data.room))
+        && request.resource.data.at == request.time;
+      allow delete: if false;
+    }
+
+    // M12: the pictures (Klei's art). Readable only by phones that joined
+    // a room; written only by the upload script (admin key skips rules).
+    match /art/{group} {
+      allow read: if signedIn()
+        && exists(/databases/$(database)/documents/members/$(request.auth.uid));
+      allow write: if false;
     }
   }
 }

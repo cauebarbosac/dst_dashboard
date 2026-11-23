@@ -63,6 +63,62 @@ export const ITEMS = {
     ],
     quantity: 'once',
   },
+  // Added 2026-11-23 (user request). DST recipe from dontstarve.wiki.gg.
+  'bucket-o-poop': {
+    id: 'bucket-o-poop',
+    name: 'Bucket-o-poop',
+    station: 'alchemy-engine',
+    ingredients: [
+      { name: 'Manure', amount: 3 },
+      { name: 'Bone Shards', amount: 2 },
+      { name: 'Log', amount: 4 },
+    ],
+    quantity: 'once',
+  },
+  // Added 2026-11-23 (user request). DST recipe from dontstarve.wiki.gg:
+  // 240 winter insulation, the warm upgrade over the Winter Hat.
+  'beefalo-hat': {
+    id: 'beefalo-hat',
+    name: 'Beefalo Hat',
+    station: 'science-machine',
+    ingredients: [
+      { name: 'Beefalo Wool', amount: 8 },
+      { name: 'Beefalo Horn', amount: 1 },
+    ],
+    quantity: 'perPlayer',
+  },
+  // Added 2026-11-23 (pictures uploaded by the user). DST recipes from
+  // dontstarve.wiki.gg.
+  chest: {
+    id: 'chest',
+    name: 'Chest',
+    station: 'science-machine',
+    ingredients: [{ name: 'Boards', amount: 3 }],
+    quantity: 'once',
+  },
+  birdcage: {
+    id: 'birdcage',
+    name: 'Birdcage',
+    station: 'alchemy-engine',
+    ingredients: [
+      { name: 'Papyrus', amount: 2 },
+      { name: 'Gold Nugget', amount: 6 },
+      { name: 'Seeds', amount: 2 },
+    ],
+    quantity: 'once',
+  },
+  // Cheap rain and heat cover: 50% wetness, 120 overheating protection.
+  'pretty-parasol': {
+    id: 'pretty-parasol',
+    name: 'Pretty Parasol',
+    station: 'hand',
+    ingredients: [
+      { name: 'Twigs', amount: 4 },
+      { name: 'Cut Grass', amount: 3 },
+      { name: 'Petals', amount: 6 },
+    ],
+    quantity: 'perPlayer',
+  },
   'lightning-rod': {
     id: 'lightning-rod',
     name: 'Lightning Rod',

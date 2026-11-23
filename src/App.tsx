@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
+import { playerFaces } from './logic/art'
 import { myPlayer } from './logic/room'
 import { playerTags } from './logic/view'
 import { browserStorage, createLocalStore } from './storage/store'
+import { ArtContext } from './ui/useArt'
 import { BoardScreen } from './ui/BoardScreen'
 import { BuiltScreen } from './ui/BuiltScreen'
 import { MyClaimsScreen } from './ui/MyClaimsScreen'
@@ -46,7 +48,7 @@ export default function App() {
       />
     )
 
-  const { code, view, send, leave } = session
+  const { code, view, art, send, leave } = session
   const leaveRoom = () => {
     leave()
     setScreen('board')
@@ -73,9 +75,15 @@ export default function App() {
   const { state } = view
   const me = myPlayer(state, session.deviceId)
   const players = playerTags(state)
+  // M12: every screen below can show faces and item pictures.
+  const withArt = (screen: ReactNode) => (
+    <ArtContext.Provider value={{ art, faces: playerFaces(state) }}>
+      {screen}
+    </ArtContext.Provider>
+  )
 
   if (me === null)
-    return (
+    return withArt(
       <JoinScreen
         code={code}
         players={players}
@@ -83,14 +91,14 @@ export default function App() {
           send({ type: 'joinRoom', playerId: session.deviceId, characterId })
         }
         onLeave={leaveRoom}
-      />
+      />,
     )
 
   const connection = { online: view.online, waiting: view.waiting }
   const toBoard = () => setScreen('board')
 
   if (screen === 'players')
-    return (
+    return withArt(
       <SetupScreen
         roomCode={code}
         players={players}
@@ -109,11 +117,11 @@ export default function App() {
         keepAwake={keepAwake}
         keepAwakeSupported={keepAwakeSupported}
         onToggleKeepAwake={() => setKeepAwake((on) => !on)}
-      />
+      />,
     )
 
   if (screen === 'season')
-    return (
+    return withArt(
       <SeasonScreen
         state={state}
         onPick={(season) => {
@@ -121,24 +129,26 @@ export default function App() {
           toBoard()
         }}
         onBack={toBoard}
-      />
+      />,
     )
 
   if (screen === 'built')
-    return <BuiltScreen state={state} dispatch={send} onBack={toBoard} />
+    return withArt(
+      <BuiltScreen state={state} dispatch={send} onBack={toBoard} />,
+    )
 
   if (screen === 'claims')
-    return (
+    return withArt(
       <MyClaimsScreen
         state={state}
         me={me}
         connection={connection}
         dispatch={send}
         onBack={toBoard}
-      />
+      />,
     )
 
-  return (
+  return withArt(
     <BoardScreen
       state={state}
       me={me}
@@ -148,6 +158,6 @@ export default function App() {
       onOpenBuilt={() => setScreen('built')}
       onOpenSeason={() => setScreen('season')}
       dispatch={send}
-    />
+    />,
   )
 }

@@ -3,6 +3,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Action } from '../logic/actions'
+import type { ArtMap } from '../logic/art'
 import { normalizeRoomCode } from '../logic/room'
 import type { PlayerId } from '../logic/state'
 import {
@@ -27,6 +28,8 @@ export type RoomSession =
       code: string
       deviceId: PlayerId
       view: RoomView | null
+      /** The pictures (M12); empty until loaded, or when there are none. */
+      art: ArtMap
       send: (action: Action) => void
       leave: () => void
     }
@@ -78,6 +81,23 @@ export function useRoom(store: GameStore): RoomSession {
     window.addEventListener('hashchange', onHash)
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
+
+  // The pictures (M12): once per room. Joining marks this phone as a
+  // member, which is what lets it read them. No pictures = text.
+  const [art, setArt] = useState<ArtMap>({})
+  useEffect(() => {
+    if (!deviceId || !code) return
+    let current = true
+    void getRooms()
+      .loadArt(code)
+      .then((loaded) => {
+        // Keep what we have if this try came back empty (e.g. offline).
+        if (current && Object.keys(loaded).length > 0) setArt(loaded)
+      })
+    return () => {
+      current = false
+    }
+  }, [deviceId, code])
 
   // Listen to the room while we're in one.
   useEffect(() => {
@@ -133,6 +153,7 @@ export function useRoom(store: GameStore): RoomSession {
     code,
     deviceId,
     view,
+    art,
     send: (action) => openRoom.current?.send(action),
     leave: () => setCode(null),
   }

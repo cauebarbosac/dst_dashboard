@@ -20,7 +20,8 @@ describe('M2 board rule', () => {
   it('the rest of the list stays hidden until cards are finished', () => {
     let game = gameWith('wilson')
     game = markBuilt(game, 'science-machine')
-    expect(visibleBoard(game)).toEqual([
+    // BOARD_SIZE went 3 → 6 (2026-11-23): check the top 3, as before.
+    expect(visibleBoard(game, 3)).toEqual([
       'alchemy-engine',
       'crock-pot',
       'ice-box',
@@ -85,5 +86,23 @@ describe('M2 my claims', () => {
     let game = claimSlot(gameWith('wilson'), 'p1', 'science-machine', 0)
     game = markBuilt(game, 'science-machine')
     expect(myClaims(game, 'p1')).toEqual([])
+  })
+})
+
+describe('Board size: the whole season, up to 6 (2026-11-23)', () => {
+  it('shows up to 6 cards', () => {
+    expect(BOARD_SIZE).toBe(6)
+  })
+
+  it('a season with fewer than 6 items shows all of them', () => {
+    const game = setSeason(gameWith('wilson'), 'winter')
+    expect(visibleBoard(game)).toEqual(SEASON_LISTS.winter)
+  })
+
+  it('a season with more than 6 items shows its first 6 (autumn has 8)', () => {
+    expect(SEASON_LISTS.autumn.length).toBeGreaterThan(6)
+    expect(visibleBoard(gameWith('wilson'))).toEqual(
+      SEASON_LISTS.autumn.slice(0, 6),
+    )
   })
 })
